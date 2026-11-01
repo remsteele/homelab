@@ -1,0 +1,68 @@
+schema_version: 1
+purpose: Historical recovery evidence for torrents whose data was manually renamed or moved.
+general_method:
+  status: confirmed
+  steps:
+    - Stop Sonarr or Radarr when it could race with the repair.
+    - Use qBittorrent Set Location to relocate data into the correct category path.
+    - Recreate the library view with hardlinks where needed.
+    - Verify matching device, inode, and link count.
+    - Assign the correct qBittorrent category and force a recheck.
+    - Restart the Arr service and ensure later renames preserve links.
+
+items:
+  - title: The Menu
+    status: historical
+    category: movies
+    download_root: /media/downloads/movies
+    result: Moved, library copy hardlinked, and verified.
+    evidence: {inode: 28049417, link_count: 2}
+
+  - title: Obsession
+    status: historical
+    category: movies
+    download_root: /media/downloads/movies
+    result: Moved, library copy hardlinked, and verified.
+    evidence: {inode: 28049454, link_count: 2}
+
+  - title: Aftersun
+    status: historical
+    category: movies
+    result: Migrated and verified with the same method.
+
+  - title: "The Last First - Winter K2 (2026)"
+    status: historical
+    category: movies
+    download_root: /media/downloads/movies
+    library_root: "/media/movies/The Last First - Winter K2 (2026)/"
+    result: Radarr import, hardlink, and Jellyfin discovery verified.
+    evidence: {inode: 28049482, link_count: 2}
+    quirk: One legacy fastresume temporary-path exception existed; final path was correct.
+
+  - title: "Mārama"
+    status: historical
+    category: movies
+    torrent_hash: 6aba5149a0780bf91dc0117b495ae6e3bef6e848
+    exact_torrent_root: "www.UIndex.org    -    Marama 2025 1080p AMZN WEB-DL DDP5 1 H 264-BYNDR"
+    result: Exact download and library copies were confirmed as hardlinks.
+    evidence:
+      media_inode: 28049484
+      nfo_inode: 28049414
+      link_count: 2
+    cleanup:
+      item: Mistaken empty similarly named folder with different spacing/case
+      status: needs_verification
+
+  - title: Mr. Robot
+    status: historical
+    category: tv
+    torrent_hash: 711ea7c37aeaa53b4b8511ec14c6b2da477af37b
+    exact_torrent_root: Mr.Robot.Season.1-4.S01-04.COMPLETE.1080p.BluRay.WEB.10bit.DD5.1.x265-POIASD
+    file_count: 58
+    method: Files were mapped against the existing library by size; the exact torrent tree was recreated as hardlinks.
+    result: qBittorrent recheck succeeded and Sonarr later renamed library files without breaking hardlinks.
+    example:
+      library_path_prefix: "/media/tv/Mr. Robot (2015)/Season 1/"
+      inode: 28049452
+      link_count: 2
+

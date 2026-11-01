@@ -1,0 +1,210 @@
+schema_version: 1
+hosts:
+  - id: pve
+    status: confirmed
+    hostname: pve
+    fqdn: pve.home.rvsteele.com
+    kind: bare-metal
+    role: Proxmox VE hypervisor
+    addresses:
+      - {ip: 10.0.10.2, vlan: home, prefix: 24, status: confirmed}
+    management_urls:
+      - https://pve.home.rvsteele.com
+      - https://10.0.10.2:8006
+    config_paths:
+      - /etc/network/interfaces
+      - /etc/hosts
+    notes:
+      - /etc/hosts should map 10.0.10.2 to pve.home.rvsteele.com and pve.
+
+  - id: router
+    status: confirmed
+    hostname: router
+    fqdn: router.home.rvsteele.com
+    kind: qemu-vm
+    vmid: 100
+    role: OPNsense router, firewall, DNS, and DHCP
+    os: OPNsense
+    resources:
+      memory_mib: 8192
+      vcpu: needs_verification
+      root_disk_gib: 32
+      root_disk_layout: ZFS stripe on one VirtIO disk
+    interfaces:
+      - {name: vtnet0, bridge: vmbr0, role: WAN, addressing: dhcp-ipv4-and-configured-dhcpv6}
+      - {name: vtnet1, bridge: vmbr1, role: LAN-trunk, vlans: "10,20,30,40,50"}
+    addresses:
+      - {ip: 10.0.10.1, vlan: home, prefix: 24, status: confirmed}
+      - {ip: 10.0.20.1, vlan: iot, prefix: 24, status: confirmed}
+      - {ip: 10.0.30.1, vlan: guest, prefix: 24, status: confirmed}
+      - {ip: 10.0.40.1, vlan: servers, prefix: 24, status: confirmed}
+      - {ip: 10.0.50.1, vlan: dmz, prefix: 24, status: confirmed}
+    management_urls:
+      - https://router.home.rvsteele.com
+      - https://10.0.10.1
+    hardening:
+      intended_wan_webgui_exposure: false
+      current_wan_webgui_exposure: needs_verification
+      alternate_hostnames: [router.home.rvsteele.com]
+
+  - id: jellyfin
+    status: confirmed
+    hostname: jellyfin
+    kind: lxc-unprivileged
+    vmid: 101
+    os: Debian
+    role: Jellyfin media server
+    resources: {vcpu: 4, memory_mib: 4096, swap_mib: 512, root_storage: local-lvm}
+    interfaces:
+      - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:e3:04:90", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.40.10, vlan: servers, prefix: 24, status: confirmed}
+    mounts:
+      - {source: /mnt/media, target: /media, mode: read-write, mode_status: confirmed}
+
+  - id: qbittorrent
+    status: confirmed
+    hostname: qbittorrent
+    kind: lxc-unprivileged
+    vmid: 102
+    os: Debian
+    role: qBittorrent download client with ProtonVPN
+    resources: {root_disk_gib: 16}
+    interfaces:
+      - {name: eth0, bridge: vmbr1, vlan: servers, mac: "bc:24:11:97:e7:68", addressing: dhcp-reservation}
+      - {name: proton, role: WireGuard-VPN, addressing: static-tunnel}
+    addresses:
+      - {ip: 10.0.40.11, vlan: servers, prefix: 24, status: confirmed}
+      - {ip: 10.2.0.2, interface: proton, prefix: 32, status: historical, note: observed tunnel address}
+      - {ip: "2a07:b944::2:2", interface: proton, prefix: 128, status: historical, note: observed tunnel address}
+    dns: {nameserver: 10.0.40.1, search_domain: home.rvsteele.com, status: confirmed}
+    mounts:
+      - {source: /mnt/media, target: /media, mode: read-write, mode_status: confirmed}
+
+  - id: games
+    status: confirmed
+    hostname: games
+    kind: qemu-vm
+    vmid: 103
+    os: Debian 13
+    role: Terraria game server
+    resources:
+      vcpu: 4
+      cpu_type: host
+      memory_mib: 8192
+      root_disk_gib: 64
+      disk_controller: VirtIO SCSI Single
+    interfaces:
+      - {bridge: vmbr1, vlan: dmz, mac: "bc:24:11:90:be:0b", addressing: dhcp-reservation, model: VirtIO}
+    addresses:
+      - {ip: 10.0.50.10, vlan: dmz, prefix: 24, status: confirmed}
+    gateway: 10.0.50.1
+    qemu_guest_agent: confirmed
+    ssh_admin_user: remington
+
+  - id: caddy
+    status: confirmed
+    hostname: caddy
+    kind: lxc-unprivileged
+    vmid: 104
+    os: Debian
+    role: Internal HTTPS reverse proxy
+    resources: {vcpu: "approximately 1", memory_mib: "512-1024", root_disk_gib: 8}
+    interfaces:
+      - {bridge: vmbr1, vlan: home, mac: "bc:24:11:a9:2e:07", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.10.3, vlan: home, prefix: 24, status: confirmed}
+    mounts: []
+
+  - id: sonarr
+    status: confirmed
+    hostname: sonarr
+    kind: lxc-unprivileged
+    vmid: 105
+    os: Debian 13
+    role: TV library automation
+    resources: {vcpu: 2, memory_mib: 1024, swap_mib: 512, root_disk_gib: 12, root_storage: local-lvm}
+    interfaces:
+      - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:ff:94:4c", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.40.12, vlan: servers, prefix: 24, status: confirmed}
+    onboot: true
+    mounts:
+      - {source: /mnt/media, target: /media, mode: read-write, mode_status: confirmed}
+
+  - id: radarr
+    status: confirmed
+    hostname: radarr
+    kind: lxc-unprivileged
+    vmid: 106
+    os: Debian 13
+    role: Movie library automation
+    resources: {vcpu: 2, memory_mib: 1024, swap_mib: 512, root_disk_gib: 12, root_storage: local-lvm}
+    interfaces:
+      - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:18:4f:26", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.40.13, vlan: servers, prefix: 24, status: confirmed}
+    onboot: true
+    mounts:
+      - {source: /mnt/media, target: /media, mode: read-write, mode_status: confirmed}
+
+  - id: prowlarr
+    status: confirmed
+    hostname: prowlarr
+    kind: lxc-unprivileged
+    vmid: 107
+    os: Debian 13
+    role: Prowlarr indexer manager and FlareSolverr host
+    resources: {vcpu: 1, memory_mib: 1024, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
+    interfaces:
+      - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:3b:00:b7", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.40.14, vlan: servers, prefix: 24, status: confirmed}
+    onboot: true
+    mounts: []
+
+  - id: dvdstream
+    status: confirmed
+    hostname: dvdstream
+    kind: lxc-privileged
+    vmid: 108
+    os: Debian 13
+    template: debian-13-standard_13.1-2_amd64.tar.zst
+    role: Physical DVD inspection and planned live streaming
+    resources: {vcpu: 4, memory_mib: 2048, swap_mib: 512, root_disk_gib: 16, root_storage: local-lvm}
+    interfaces:
+      - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:93:c9:3f", addressing: dhcp-reservation}
+    addresses:
+      - {ip: 10.0.40.15, vlan: servers, prefix: 24, status: confirmed}
+    onboot: true
+    passed_devices:
+      - {host: /dev/sr0, container: /dev/sr0, type: block, major_minor: "11:0", permissions: rwm}
+      - {host: /dev/sg1, container: /dev/sg1, type: character, major_minor: "21:1", permissions: rwm}
+    mounts: []
+    security_notes:
+      - Privileged only because low-level optical access is the dedicated purpose.
+      - Host disk metadata is visible through sysfs; only sr0 and sg1 are intentionally passed.
+      - Do not mount or touch host disks from this container.
+
+  - id: eap650
+    status: confirmed
+    hostname: ap
+    fqdn: ap.home.rvsteele.com
+    kind: network-appliance
+    role: Wi-Fi access point
+    addresses:
+      - {ip: 10.0.10.111, vlan: home, prefix: 24, status: confirmed}
+
+historical_hosts:
+  - id: dvdstream-vm
+    status: historical
+    vmid: 108
+    kind: qemu-vm
+    os: Debian 13
+    address: 10.0.40.15
+    mac: "bc:24:11:93:c9:3f"
+    vlan: servers
+    resources: {vcpu: 2, memory_mib: 2048, root_disk_gib: 16}
+    optical_access: Physical drive attached through QEMU
+    disposition: Destroyed and replaced with privileged CT 108 because raw/CSS optical reads through QEMU were unreliable.
+

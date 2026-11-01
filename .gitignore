@@ -1,0 +1,16 @@
+.DS_Store
+*.swp
+*.tmp
+*.bak
+.env
+.env.*
+secrets/
+private/
+*.key
+*.pem
+*.p12
+*.pfx
+*_token
+*_token.txt
+wg*.conf
+

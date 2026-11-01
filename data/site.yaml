@@ -1,0 +1,27 @@
+schema_version: 1
+site:
+  id: homelab
+  status: confirmed
+  owner: remington
+  timezone: America/Los_Angeles
+  internal_domain: home.rvsteele.com
+  public_domain: rvsteele.com
+  internet_provider: Cox
+  public_dns_provider: Cloudflare
+  virtualization:
+    platform: Proxmox VE
+    reported_version: "9.2"
+    version_status: needs_verification
+    install_type: bare-metal
+  router:
+    platform: OPNsense
+    reported_version: "at least 26.7.5"
+    version_status: needs_verification
+  notes:
+    - The Cox gateway is bridged; OPNsense is the router and firewall.
+    - The public IPv4 address is dynamic.
+source:
+  imported_from: context.txt
+  import_date: 2026-11-01
+  policy: No live discovery was performed during the initial import.
+

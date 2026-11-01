@@ -1,0 +1,122 @@
+schema_version: 1
+bridges:
+  - id: vmbr0
+    status: confirmed
+    host: pve
+    role: WAN bridge
+    ports: [enp3s0f0]
+    vlan_aware: false
+    host_addressing: none
+    constraints:
+      - The Proxmox host must not have an IP or default gateway on this bridge.
+  - id: vmbr1
+    status: confirmed
+    host: pve
+    role: LAN VLAN trunk
+    ports: [enp3s0f1]
+    vlan_aware: true
+    allowed_vlan_ids: 2-4094
+  - id: vmbr1.10
+    status: confirmed
+    host: pve
+    parent: vmbr1
+    vlan_id: 10
+    address: 10.0.10.2/24
+    default_gateway: 10.0.10.1
+
+vlans:
+  - id: home
+    status: confirmed
+    vlan_id: 10
+    name: HOME
+    subnet: 10.0.10.0/24
+    gateway: 10.0.10.1
+    trust: trusted
+    roles: [trusted-clients, infrastructure-management, reverse-proxy]
+  - id: iot
+    status: confirmed
+    vlan_id: 20
+    name: IOT
+    subnet: 10.0.20.0/24
+    gateway: 10.0.20.1
+    trust: untrusted
+  - id: guest
+    status: confirmed
+    vlan_id: 30
+    name: GUEST
+    subnet: 10.0.30.0/24
+    gateway: 10.0.30.1
+    trust: untrusted
+  - id: servers
+    status: confirmed
+    vlan_id: 40
+    name: SERVERS
+    subnet: 10.0.40.0/24
+    gateway: 10.0.40.1
+    trust: restricted
+    roles: [internal-services, media-stack]
+  - id: dmz
+    status: confirmed
+    vlan_id: 50
+    name: DMZ
+    subnet: 10.0.50.0/24
+    gateway: 10.0.50.1
+    trust: restricted
+    roles: [publicly-exposed-workloads]
+  - id: tor
+    status: planned
+    vlan_id: 60
+    name: TOR
+    subnet: 10.0.60.0/24
+    gateway: needs_verification
+    trust: untrusted
+    roles: [transparent-tor-wifi]
+  - id: mgmt
+    status: planned
+    vlan_id: 99
+    name: MGMT
+    subnet: needs_verification
+    gateway: needs_verification
+    note: Management currently remains on VLAN 10.
+
+wifi:
+  access_point: eap650
+  management_vlan: home
+  ssids:
+    - name: HOME
+      status: confirmed
+      vlan: home
+    - name: IOT
+      status: confirmed
+      vlan: iot
+    - name: GUEST
+      status: confirmed
+      vlan: guest
+      client_isolation: needs_verification
+    - name: Tor / Tor-WiFi
+      status: planned
+      vlan: tor
+
+special_routes:
+  - id: qbittorrent-home-return
+    status: confirmed
+    host: qbittorrent
+    destination: 10.0.10.0/24
+    via: 10.0.40.1
+    interface: eth0
+    configured_in: /etc/wireguard/proton.conf
+    purpose: Return HOME/Caddy traffic over LAN instead of Proton policy routing.
+    commands:
+      post_up: ip route replace 10.0.10.0/24 via 10.0.40.1 dev eth0
+      post_down: ip route del 10.0.10.0/24 via 10.0.40.1 dev eth0 2>/dev/null || true
+
+historical_networks:
+  - status: historical
+    subnet: 192.168.1.0/24
+    purpose: Temporary OPNsense/AP management network
+    cleanup_status: needs_verification
+  - status: historical
+    address: 192.168.0.231
+    host: games
+    purpose: Temporary pre-OPNsense address on untagged vmbr0
+

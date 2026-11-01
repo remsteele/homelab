@@ -1,0 +1,23 @@
+# Address book
+
+Generated from `data/hosts.yaml` by `tools/generate_docs.rb`. Do not edit by hand.
+
+| Host | Type | VMID | Address | VLAN | MAC | State |
+|---|---|---:|---|---|---|---|
+| pve | bare-metal |  | 10.0.10.2 | home | — | confirmed |
+| router | qemu-vm | 100 | 10.0.10.1 | home | — | confirmed |
+| ↳ |  |  | 10.0.20.1 | iot | — | confirmed |
+| ↳ |  |  | 10.0.30.1 | guest | — | confirmed |
+| ↳ |  |  | 10.0.40.1 | servers | — | confirmed |
+| ↳ |  |  | 10.0.50.1 | dmz | — | confirmed |
+| jellyfin | lxc-unprivileged | 101 | 10.0.40.10 | servers | bc:24:11:e3:04:90 | confirmed |
+| qbittorrent | lxc-unprivileged | 102 | 10.0.40.11 | servers | bc:24:11:97:e7:68 | confirmed |
+| ↳ |  |  | 10.2.0.2 | proton | — | historical |
+| ↳ |  |  | 2a07:b944::2:2 | proton | — | historical |
+| games | qemu-vm | 103 | 10.0.50.10 | dmz | bc:24:11:90:be:0b | confirmed |
+| caddy | lxc-unprivileged | 104 | 10.0.10.3 | home | bc:24:11:a9:2e:07 | confirmed |
+| sonarr | lxc-unprivileged | 105 | 10.0.40.12 | servers | bc:24:11:ff:94:4c | confirmed |
+| radarr | lxc-unprivileged | 106 | 10.0.40.13 | servers | bc:24:11:18:4f:26 | confirmed |
+| prowlarr | lxc-unprivileged | 107 | 10.0.40.14 | servers | bc:24:11:3b:00:b7 | confirmed |
+| dvdstream | lxc-privileged | 108 | 10.0.40.15 | servers | bc:24:11:93:c9:3f | confirmed |
+| eap650 | network-appliance |  | 10.0.10.111 | home | — | confirmed |

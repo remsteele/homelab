@@ -1,0 +1,2512 @@
+I AM BUILDING A SOURCE OF TRUTH FOR MY HOMELAB.
+
+Eventually I want Codex to turn everything collected from my various homelab chats into a maintained directory roughly like:
+
+/srv/homelab/
+├── README.md
+├── topology.yaml
+├── hosts.yaml
+├── networks.yaml
+├── services.yaml
+├── storage.yaml
+├── dependencies.yaml
+├── firewall.md
+├── runbooks/
+│   ├── internet-outage.md
+│   ├── qbittorrent-vpn.md
+│   ├── jellyfin.md
+│   ├── dvdstream.md
+│   └── ...
+├── snapshots/
+│   ├── proxmox/
+│   ├── opnsense/
+│   └── services/
+└── automation/
+    ├── discovery/
+    └── ansible/
+
+YOUR TASK IN THIS CHAT:
+
+1. Read ALL of the accumulated homelab information below.
+2. Add ANY additional facts from THIS chat that would be useful in a source of truth.
+3. Include details even if they seem minor:
+   - hosts / VM / CT IDs
+   - IPs / MACs
+   - VLANs
+   - bridges
+   - firewall rules
+   - NAT
+   - DNS
+   - DHCP
+   - ports
+   - storage paths
+   - mounts
+   - users/groups
+   - service dependencies
+   - VPN behavior
+   - reverse proxies
+   - certificates
+   - hardware
+   - physical topology
+   - configuration files
+   - systemd units
+   - special routing
+   - security decisions
+   - known problems / quirks
+   - planned architecture
+   - things that still need verification
+   - useful recovery/runbook information
+4. DO NOT invent missing information.
+5. Clearly distinguish:
+   - CONFIRMED CURRENT STATE
+   - PLANNED / DESIRED STATE
+   - UNKNOWN / NEEDS VERIFICATION
+6. If something conflicts with newer information from THIS chat, prefer the newer information and explicitly note the correction.
+7. Do not include passwords, API tokens, private SSH keys, WireGuard private keys, or other secrets.
+8. At the end, output a NEW COPY/PASTEABLE BLOCK containing everything here PLUS anything useful learned in this chat so the process can continue.
+
+============================================================
+CONFIRMED CURRENT STATE
+============================================================
+
+GENERAL
+=======
+
+Primary virtualization platform:
+- Proxmox VE 9.2
+- Bare metal
+- Hostname: pve
+- Internal management:
+  https://pve.home.rvsteele.com
+- Direct emergency management:
+  https://10.0.10.2:8006
+
+Internal DNS domain:
+- home.rvsteele.com
+
+Public domain:
+- rvsteele.com
+
+Public DNS provider:
+- Cloudflare
+
+Internet provider:
+- Cox
+
+Cox gateway:
+- bridge mode
+- OPNsense is the actual router/firewall
+- bridged gateway remained reachable at 192.168.0.1
+
+Observed public WAN IPv4 during earlier setup:
+- 98.176.159.214
+- dynamic; DO NOT treat as permanent
+
+============================================================
+PHYSICAL HARDWARE
+============================================================
+
+Proxmox machine:
+- CPU: Intel Core i5-10600
+- RAM: 32 GB
+
+Boot/system disk:
+- SK hynix BC711 NVMe
+- 512 GB nominal / ~476.9 GiB visible
+- ext4/LVM Proxmox installation
+
+Media disk:
+- WDC WD10JPLX-00MBPT0
+- 1 TB nominal / ~931.5 GiB visible
+- /dev/sda
+- partition /dev/sda1
+- ext4
+- label: media
+- mounted at:
+  /mnt/media
+
+Optical drive:
+- HL-DT-ST DVD+/-RW GU90N
+- block device:
+  /dev/sr0
+- /dev/cdrom -> sr0
+- SCSI-generic device:
+  /dev/sg1
+- sg device ownership observed:
+  root:cdrom
+- sr0 major/minor:
+  block 11:0
+- sg1 major/minor:
+  character 21:1
+
+Optical drive issue discovered:
+- Linux kernel has reported SATA communication errors on ata4 during sustained DVD reads:
+  - interface fatal error
+  - ATA bus error
+  - BadCRC
+  - UnrecovData
+  - PHYRdyChg
+  - 10B8B
+  - hard resetting link
+- This points to physical SATA/slimline-SATA connection, cable, adapter, connector, or drive-interface instability rather than an FFmpeg/HLS software problem.
+- Physical connection should be reseated and retested.
+- If errors persist, cable/adapter should be replaced before further software tuning.
+
+Original onboard Ethernet:
+- Killer E2600 / Realtek
+- Linux driver: r8169
+- unreliable/broken for this setup
+- experienced:
+  - NETDEV WATCHDOG
+  - PCIe AER failures
+  - PCIe link loss
+  - retraining failures
+  - BadCRC / link issues
+- do not rely on this NIC
+
+Current router NIC:
+- dual-port Intel I350-based / 10Gtek card
+
+Physical interfaces:
+- enp3s0f0
+  - MAC: 98:b7:85:25:80:6f
+  - WAN physical interface
+  - connected to Cox gateway
+
+- enp3s0f1
+  - MAC: 98:b7:85:25:80:70
+  - LAN VLAN trunk
+  - connected to TP-Link Omada EAP650
+
+Wi-Fi AP:
+- TP-Link Omada EAP650 AX3000
+- standalone management
+- management IP: 10.0.10.111
+
+TV:
+- LG C3 OLED
+- 77-inch
+- intended target for Jellyfin and future DVD Watch Now streaming
+
+Physical topology:
+
+Internet
+  |
+Cox gateway
+(bridge mode)
+  |
+enp3s0f0
+  |
+vmbr0
+  |
+OPNsense WAN
+  |
+OPNsense LAN trunk
+  |
+vmbr1
+  |
+enp3s0f1
+  |
+EAP650
+
+============================================================
+PROXMOX NETWORKING
+============================================================
+
+vmbr0:
+- WAN bridge
+- bridge port: enp3s0f0
+- Proxmox host MUST NOT have an IP/default gateway here
+
+vmbr1:
+- LAN VLAN trunk
+- bridge port: enp3s0f1
+- VLAN aware
+- VLAN IDs 2-4094 allowed
+
+Proxmox management:
+- VLAN 10
+- vmbr1.10
+- IP: 10.0.10.2/24
+- gateway: 10.0.10.1
+
+Approximate relevant configuration:
+
+auto vmbr0
+iface vmbr0 inet manual
+    bridge-ports enp3s0f0
+    bridge-stp off
+    bridge-fd 0
+
+auto vmbr1
+iface vmbr1 inet manual
+    bridge-ports enp3s0f1
+    bridge-stp off
+    bridge-fd 0
+    bridge-vlan-aware yes
+    bridge-vids 2-4094
+
+auto vmbr1.10
+iface vmbr1.10 inet static
+    address 10.0.10.2/24
+    gateway 10.0.10.1
+
+/etc/hosts should contain approximately:
+
+10.0.10.2 pve.home.rvsteele.com pve
+
+============================================================
+VLANS / NETWORKS
+============================================================
+
+VLAN 10 — HOME
+- subnet: 10.0.10.0/24
+- gateway: 10.0.10.1
+- trusted clients
+- laptops / phones
+- infrastructure management
+- Proxmox
+- OPNsense
+- EAP650
+- Caddy
+
+VLAN 20 — IOT
+- subnet: 10.0.20.0/24
+- gateway: 10.0.20.1
+
+VLAN 30 — GUEST
+- subnet: 10.0.30.0/24
+- gateway: 10.0.30.1
+
+VLAN 40 — SERVERS
+- subnet: 10.0.40.0/24
+- gateway: 10.0.40.1
+- Jellyfin
+- qBittorrent
+- Sonarr
+- Radarr
+- Prowlarr
+- DVD streaming service
+- future internal services
+
+VLAN 50 — DMZ
+- subnet: 10.0.50.0/24
+- gateway: 10.0.50.1
+- publicly exposed workloads
+- Terraria game server
+
+Possible future VLAN:
+- VLAN 99 MGMT
+- NOT deployed
+- management remains on VLAN 10
+
+Possible future VLAN:
+- VLAN 60 TOR
+- NOT deployed
+- intended for dedicated Tor Wi-Fi / transparent Tor gateway
+
+============================================================
+DHCP / DNS
+============================================================
+
+OPNsense Dnsmasq handles DHCP/reservations.
+
+DHCP ranges:
+
+HOME:
+10.0.10.100 - 10.0.10.199
+
+IOT:
+10.0.20.100 - 10.0.20.199
+
+GUEST:
+10.0.30.100 - 10.0.30.199
+
+SERVERS:
+10.0.40.100 - 10.0.40.199
+
+DMZ:
+10.0.50.100 - 10.0.50.199
+
+Static/reserved infrastructure addresses are generally configured as Dnsmasq host reservations.
+
+IMPORTANT DNS/DHCP DESIGN:
+
+Dnsmasq:
+- DHCP / reservations
+- DNS service also exists on port 53053
+
+Unbound:
+- actual resolver
+- port 53
+
+Therefore:
+- a Dnsmasq reservation MUST NOT be assumed to automatically create the desired internal DNS record.
+
+Static internal names should be created in:
+
+Services
+→ Unbound DNS
+→ Overrides
+→ Host Overrides
+
+Known internal web hostnames generally resolve to Caddy:
+- target IP: 10.0.10.3
+
+Known clean names:
+- router.home.rvsteele.com
+- pve.home.rvsteele.com
+- ap.home.rvsteele.com
+- jellyfin.home.rvsteele.com
+- qbittorrent.home.rvsteele.com
+- sonarr.home.rvsteele.com
+- radarr.home.rvsteele.com
+- prowlarr.home.rvsteele.com
+
+Terraria is not proxied by Caddy:
+- terraria.home.rvsteele.com -> 10.0.50.10 internally
+- terraria.rvsteele.com is public raw TCP
+
+Future DVD hostname:
+- dvd.home.rvsteele.com
+- intended to resolve internally to Caddy when Watch Now site is complete
+
+============================================================
+OPNSENSE
+============================================================
+
+Proxmox:
+- VM 100
+- QEMU VM
+- OPNsense 26.7 originally
+- upgraded to at least 26.7.5 during setup
+- installed to ZFS stripe on a single 32 GB VirtIO disk
+
+RAM:
+- currently 8 GB
+
+CPU:
+- exact current vCPU count still needs verification
+
+NICs:
+- VirtIO
+
+vtnet0:
+- vmbr0
+- WAN
+
+vtnet1:
+- vmbr1
+- LAN VLAN trunk
+
+WAN:
+- IPv4 DHCP
+- receives public Cox IPv4 while gateway is bridged
+- DHCPv6 configured during setup
+- no WebGUI exposure on WAN
+
+Internal GUI:
+https://router.home.rvsteele.com
+
+Direct:
+https://10.0.10.1
+
+Hostname:
+router.home.rvsteele.com
+
+Alternate Hostnames should contain:
+router.home.rvsteele.com
+
+Root password recovery procedure previously used:
+
+At boot choose Single User mode.
+
+Then:
+
+/sbin/mount -u /
+/sbin/zfs mount -a
+opnsense-shell password
+reboot
+
+Never store the password.
+
+============================================================
+OPNSENSE FIREWALL ALIASES
+============================================================
+
+Alias:
+LOCAL_NETS
+
+Type:
+Network(s)
+
+Contents:
+10.0.0.0/8
+172.16.0.0/12
+192.168.0.0/16
+
+Purpose:
+- block untrusted VLANs from initiating connections to internal RFC1918 networks
+
+============================================================
+FIREWALL POLICY
+============================================================
+
+HOME VLAN:
+- broad rule currently/historically:
+  PASS HOME net -> any
+- description similar to:
+  TEMP - HOME allow all
+- permits trusted HOME clients to reach infrastructure, SERVERS, DMZ and Internet
+- should eventually be tightened
+
+IOT rules:
+
+1.
+PASS IPv4 TCP/UDP
+source: IOT net
+destination: This Firewall
+port: 53
+
+2.
+Needed for LG TV / Jellyfin if TV is on IOT:
+PASS TCP
+source: IOT net
+destination: 10.0.40.10
+port: 8096
+
+3.
+BLOCK IPv4
+source: IOT net
+destination: LOCAL_NETS
+
+4.
+PASS IPv4
+source: IOT net
+destination: any
+
+GUEST:
+
+1.
+PASS DNS
+GUEST net -> This Firewall port 53
+
+2.
+BLOCK
+GUEST net -> LOCAL_NETS
+
+3.
+PASS
+GUEST net -> any
+
+EAP Guest SSID client isolation should be enabled.
+
+SERVERS general rules:
+
+PASS
+SERVERS net -> This Firewall
+TCP/UDP 53
+
+BLOCK
+SERVERS net -> LOCAL_NETS
+
+PASS
+SERVERS net -> any
+
+Special qBittorrent rules exist ABOVE these generic SERVERS rules.
+
+DMZ:
+
+PASS
+DMZ net -> This Firewall
+TCP/UDP 53
+
+BLOCK
+DMZ net -> LOCAL_NETS
+
+PASS
+DMZ net -> any
+
+Because OPNsense is stateful:
+- HOME-initiated connections toward SERVERS/DMZ can receive replies even though SERVERS/DMZ cannot initiate new connections toward HOME.
+
+Same-VLAN traffic such as:
+- Sonarr
+- Radarr
+- Prowlarr
+- qBittorrent
+- dvdstream
+
+on VLAN 40 stays local and does not traverse the OPNsense inter-VLAN firewall.
+
+============================================================
+WI-FI / EAP650
+============================================================
+
+Device:
+TP-Link Omada EAP650 AX3000
+
+Management:
+- VLAN 10
+- IP: 10.0.10.111
+
+SSID mapping:
+
+HOME:
+- VLAN 10
+
+IOT:
+- VLAN 20
+
+GUEST:
+- VLAN 30
+- client isolation recommended/enabled
+
+Possible future:
+TOR:
+- VLAN 60
+- not deployed
+
+Temporary AP-management source NAT was once used while AP management remained on 192.168.1.x.
+
+After enabling EAP Management VLAN 10:
+- AP obtained 10.0.10.111
+
+Temporary AP-management source NAT should no longer be required.
+
+============================================================
+CADDY REVERSE PROXY
+============================================================
+
+CT 104:
+- hostname: caddy
+- Debian LXC
+- unprivileged
+- VLAN 10
+- IP: 10.0.10.3
+- MAC: BC:24:11:A9:2E:07
+- bridge: vmbr1
+- tag: 10
+- approximately 1 vCPU
+- approximately 512 MB–1 GB RAM
+- 8 GB root disk
+- no /media mount
+
+Caddy:
+- installed using official Debian package
+
+Cloudflare DNS module:
+caddy add-package github.com/caddy-dns/cloudflare
+
+Verify:
+caddy list-modules | grep cloudflare
+
+Expected:
+dns.providers.cloudflare
+
+Cloudflare DNS challenge token:
+- /etc/caddy/cloudflare_token
+- root:caddy
+- mode 0640
+- token value must never be committed
+
+Caddy uses Cloudflare DNS-01:
+- allows publicly trusted internal HTTPS certificates
+- does NOT require WAN port 80/443 exposure
+
+Common TLS block:
+
+tls {
+    dns cloudflare {file./etc/caddy/cloudflare_token}
+    resolvers 1.1.1.1
+}
+
+Confirmed Caddy backends:
+
+jellyfin.home.rvsteele.com
+-> http://10.0.40.10:8096
+
+qbittorrent.home.rvsteele.com
+-> http://10.0.40.11:8080
+
+sonarr.home.rvsteele.com
+-> http://10.0.40.12:8989
+
+radarr.home.rvsteele.com
+-> http://10.0.40.13:7878
+
+prowlarr.home.rvsteele.com
+-> http://10.0.40.14:9696
+
+pve.home.rvsteele.com
+-> https://10.0.10.2:8006
+-> backend cert verification skipped
+
+router.home.rvsteele.com
+-> https://10.0.10.1
+-> backend cert verification skipped
+-> HTTP/1.1 upstream workaround tested
+
+ap.home.rvsteele.com
+-> https://10.0.10.111
+-> backend cert verification skipped
+-> Host header override required/tested
+
+For HTTPS backends with self-signed certificates:
+
+transport http {
+    tls_insecure_skip_verify
+}
+
+CORRECTION FROM OLDER STATE:
+- Sonarr, Radarr and Prowlarr are no longer merely “future” Caddy services.
+- Their Caddy blocks were added, validated and reloaded.
+- Their Unbound host overrides were changed to resolve to 10.0.10.3.
+- Browser HTTPS access worked for Sonarr/Radarr/Prowlarr.
+- HTTP HEAD requests returned 401 because authentication is enabled; this is expected and confirmed Caddy was proxying to Kestrel.
+
+============================================================
+CADDY / AP QUIRK
+============================================================
+
+ap.home.rvsteele.com:
+- login page loads
+- login succeeds
+- after login, UI becomes blank
+- direct IP access works
+
+This suggests an AP web-app/reverse-proxy compatibility problem rather than DNS failure.
+
+A proposed Caddy workaround was to strip:
+- X-Forwarded-Host
+- X-Forwarded-Proto
+- X-Forwarded-For
+
+Example proposed AP block:
+
+ap.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+
+    reverse_proxy https://10.0.10.111 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+
+        header_up Host 10.0.10.111
+        header_up -X-Forwarded-Host
+        header_up -X-Forwarded-Proto
+        header_up -X-Forwarded-For
+    }
+}
+
+UNKNOWN:
+- Whether this workaround was actually applied and fixed the post-login blank screen.
+- If still broken, inspect browser developer tools for failing Origin/Referer/API requests.
+
+============================================================
+JELLYFIN
+============================================================
+
+CT 101:
+- Debian LXC
+- unprivileged
+- 4 vCPU
+- 4096 MB RAM
+- 512 MB swap
+- local-lvm root disk
+- bridge: vmbr1
+- VLAN: 40
+- IP: 10.0.40.10
+- MAC: BC:24:11:E3:04:90
+- DHCP reservation
+
+Port:
+- TCP 8096
+
+Internal URL:
+https://jellyfin.home.rvsteele.com
+
+Caddy:
+-> 10.0.40.10:8096
+
+Mount:
+/mnt/media on pve
+-> /media in CT
+
+Libraries:
+- Movies: /media/movies
+- TV: /media/tv
+
+Remote connections enabled.
+
+UPnP / automatic port mapping:
+- should NOT be enabled
+
+Do NOT expose 8096 directly to WAN.
+
+LG TV / IOT devices may require:
+IOT -> 10.0.40.10 TCP 8096
+
+Jellyfin successfully detected/imported:
+- The Last First - Winter K2 (2026)
+
+This confirmed:
+- Radarr import
+- library placement
+- Jellyfin scan/read path
+
+============================================================
+QBITTORRENT
+============================================================
+
+CT 102:
+- Debian LXC
+- unprivileged
+- bridge: vmbr1
+- VLAN 40
+- IP: 10.0.40.11
+- MAC: BC:24:11:97:E7:68
+- DHCP reservation
+- 16 GB root disk observed
+
+WebUI:
+- TCP 8080
+
+Internal URL:
+https://qbittorrent.home.rvsteele.com
+
+Caddy:
+-> 10.0.40.11:8080
+
+Mount:
+/mnt/media
+-> /media
+
+Storage:
+- /media/downloads
+- /media/downloads/incomplete
+- /media/downloads/movies
+- /media/downloads/tv
+
+Service:
+- qbittorrent.service
+- qBittorrent-nox
+- User=qbittorrent
+- Group=qbittorrent
+- UMask=0002
+
+qBittorrent is explicitly bound to:
+- network interface proton
+
+VPN:
+- ProtonVPN WireGuard
+- interface: proton
+- systemd unit: wg-quick@proton
+- qBittorrent depends on Proton service
+- application-level binding acts as another kill switch
+
+Observed tunnel:
+- IPv4 10.2.0.2/32
+- IPv6 2a07:b944::2:2/128
+
+AllowedIPs:
+0.0.0.0/0, ::/0
+
+Observed Proton endpoint:
+146.70.195.82:51820
+
+Endpoint may change.
+
+Recent healthy WireGuard observation:
+- peer handshake approximately 1–2 minutes old
+- transfer totals approximately:
+  - 85.03 GiB received
+  - 28.95 GiB sent
+- persistent keepalive every 25 seconds
+
+Special local HOME route in:
+/etc/wireguard/proton.conf
+
+Under [Interface]:
+
+PostUp = ip route replace 10.0.10.0/24 via 10.0.40.1 dev eth0
+PostDown = ip route del 10.0.10.0/24 via 10.0.40.1 dev eth0 2>/dev/null || true
+
+Purpose:
+- return HOME/Caddy traffic over eth0 instead of Proton policy routing
+
+============================================================
+QBITTORRENT DNS INCIDENT AFTER WAN DISABLE
+============================================================
+
+A WAN outage/intentional WAN disable exposed two qBittorrent CT issues.
+
+1. STALE DNS CONFIG
+
+CT 102 /etc/resolv.conf was observed as:
+
+search home.rvsteele.com
+nameserver 192.168.0.1
+
+This was stale from the old network.
+
+Symptoms:
+- ip route to 1.1.1.1 correctly used proton
+- ping 1.1.1.1 succeeded
+- getent hosts google.com returned nothing
+- curl through proton failed while resolving
+
+Persistent Proxmox LXC DNS was changed to:
+- nameserver 10.0.40.1
+- searchdomain home.rvsteele.com
+
+Command used:
+
+pct set 102 -nameserver 10.0.40.1 -searchdomain home.rvsteele.com
+
+After container reboot /etc/resolv.conf showed:
+
+search home.rvsteele.com
+nameserver 10.0.40.1
+
+CORRECTION:
+- CT 102 must use OPNsense 10.0.40.1 as its configured DNS, not 192.168.0.1.
+
+2. WIREGUARD BOOT-ORDER RACE
+
+After CT 102 rebooted:
+- qbittorrent.service remained inactive because dependency wg-quick@proton failed
+- wg-quick@proton failed while executing:
+
+ip route replace 10.0.10.0/24 via 10.0.40.1 dev eth0
+
+Error:
+
+Error: Nexthop has invalid gateway.
+
+Likely cause:
+- wg-quick started before DHCP/networking had fully configured eth0/10.0.40.11
+- the PostUp route therefore failed
+- wg-quick treated the PostUp failure as fatal and tore the tunnel back down
+- qBittorrent then correctly refused to start because its Proton dependency failed
+
+This is a useful runbook issue.
+
+CURRENT UNKNOWN:
+- A permanent systemd/network-online boot-order fix for wg-quick@proton was discussed but NOT yet implemented in this chat.
+- Need ensure wg-quick@proton starts only after eth0/DHCP is actually usable.
+- Do not weaken the kill switch as a workaround.
+
+============================================================
+QBITTORRENT OPNsense VPN LEAK PROTECTION
+============================================================
+
+Alias:
+PROTON_ENDPOINT
+
+Observed:
+146.70.195.82
+
+Must be updated if Proton server/config changes.
+
+Special SERVERS rules for 10.0.40.11 ABOVE generic SERVERS rules:
+
+1.
+PASS
+source: 10.0.40.11
+destination: This Firewall
+TCP/UDP 53
+description:
+qBit - allow DNS to OPNsense
+
+2.
+PASS
+source: 10.0.40.11
+destination: PROTON_ENDPOINT
+UDP 51820
+description:
+qBit - allow Proton WireGuard
+
+3.
+BLOCK
+source: 10.0.40.11
+destination: any
+description concept:
+qBit - block all non-Proton egress
+
+Then generic SERVERS rules follow.
+
+Intent:
+- if Proton fails, CT 102 cannot establish arbitrary normal-WAN connections
+
+Explicit kill-switch failure test remains something to verify if not already done.
+
+============================================================
+MEDIA STORAGE
+============================================================
+
+Physical:
+- separate 1 TB HDD
+- /dev/sda1
+- ext4
+- label media
+- mounted /mnt/media
+
+Host layout:
+
+/mnt/media/
+├── downloads/
+│   ├── incomplete/
+│   │   ├── Movies/
+│   │   └── TV/
+│   ├── movies/
+│   └── tv/
+├── movies/
+└── tv/
+
+Relevant LXCs see entire same root as:
+
+/media/
+├── downloads/
+│   ├── incomplete/
+│   ├── movies/
+│   └── tv/
+├── movies/
+└── tv/
+
+Same filesystem means:
+- hardlinks supported
+- atomic moves possible
+- no duplicate media data required for seeding + library imports
+
+Desired/current role separation:
+
+qBittorrent:
+- /media/downloads/movies
+- /media/downloads/tv
+- /media/downloads/incomplete
+
+Radarr:
+- imports/hardlinks into /media/movies
+
+Sonarr:
+- imports/hardlinks into /media/tv
+
+Jellyfin:
+- reads /media/movies
+- reads /media/tv
+
+Do not use chmod 777.
+
+Do not mount downloads/movies/tv as unrelated independent roots if hardlinks are desired.
+
+============================================================
+MEDIA PERMISSIONS
+============================================================
+
+Standard unprivileged LXC mapping originally observed:
+UID:
+0 -> host 100000
+GID:
+0 -> host 100000
+range 65536
+
+Jellyfin and qBittorrent service users happened to use:
+- uid 102
+- gid 105
+inside their respective containers
+
+A dedicated shared media group was implemented:
+
+Inside relevant writable media containers:
+- group name: media
+- GID: 5000
+
+Host-mapped GID:
+- 105000
+
+Members:
+- qBittorrent user belongs to media
+- Sonarr runs with media as its group / has access
+- Radarr runs with media as its group / has access
+
+Jellyfin:
+- intentionally NOT added to the writable media group
+- reads via normal read bits
+- least-privilege decision
+- future read-only bind mount is possible
+
+Host media directories:
+- group changed recursively to host GID 105000 where appropriate
+- directories setgid
+- typical directory mode: 2775
+- existing files generally group-writable and world-readable
+- typical file mode: 664
+
+/media root itself:
+- host root:root 755
+- appears as 65534:65534 inside unprivileged LXCs
+- still traversable
+
+qBittorrent systemd:
+- UMask=0002
+- process groups include GID 5000
+
+Sonarr/Radarr:
+- UMask=0002
+
+Hardlink behavior has been explicitly verified by inode equality.
+
+============================================================
+QBITTORRENT CATEGORIES / AUTOMATIC MANAGEMENT
+============================================================
+
+qBittorrent Torrent Management Mode:
+- Automatic
+
+Saving Management:
+- Default Torrent Management Mode: Automatic
+- when category changed: Relocate torrent
+- when Default Save Path changed: Relocate affected torrents
+- when Category Save Path changed: Relocate affected torrents
+
+Categories:
+
+movies:
+save path:
+/media/downloads/movies
+
+tv:
+save path:
+/media/downloads/tv
+
+Relevant category config equivalent:
+
+{
+  "movies": {
+    "save_path": "/media/downloads/movies"
+  },
+  "tv": {
+    "save_path": "/media/downloads/tv"
+  }
+}
+
+Fastresume audit confirmed:
+- movie torrents save under /media/downloads/movies
+- TV torrents save under /media/downloads/tv
+- incomplete data generally under Movies or TV subdirs
+- one Winter K2 legacy temp-path exception existed but final path is correct
+
+============================================================
+LEGACY TORRENT / HARDLINK MIGRATION
+============================================================
+
+Legacy media that had been renamed/moved manually broke qBittorrent paths.
+
+General migration method successfully used:
+
+1. Stop Sonarr/Radarr if needed.
+2. qBittorrent Set Location to proper category folder.
+3. Allow qBittorrent to relocate active seed data.
+4. Recreate library path using hardlinks where needed:
+   cp -al ...
+5. Verify inode/link count.
+6. Assign qBittorrent category.
+7. Restart Sonarr/Radarr.
+
+Confirmed examples:
+
+The Menu:
+- moved to /media/downloads/movies
+- hardlinked library copy
+- inode example: 28049417
+- link count 2
+
+Obsession:
+- moved to /media/downloads/movies
+- hardlinked library copy
+- inode example: 28049454
+- link count 2
+
+Aftersun:
+- migrated similarly
+- verified good
+
+The Last First - Winter K2 (2026):
+- qBittorrent source under /media/downloads/movies
+- Radarr library:
+  /media/movies/The Last First - Winter K2 (2026)/
+- main media inode:
+  28049482
+- link count 2
+- Jellyfin confirmed it appears in Movies
+
+Mārama:
+- torrent hash:
+  6aba5149a0780bf91dc0117b495ae6e3bef6e848
+- exact torrent root contains unusual spacing:
+  www.UIndex.org    -    Marama 2025 1080p AMZN WEB-DL DDP5 1 H 264-BYNDR
+- library MKV inode:
+  28049484
+- NFO inode:
+  28049414
+- final download/root copies confirmed same inodes, link count 2
+- legacy mistaken empty similarly named folder with different spacing/case existed and was safe to rmdir
+
+Mr. Robot:
+- torrent hash:
+  711ea7c37aeaa53b4b8511ec14c6b2da477af37b
+- exact torrent root:
+  Mr.Robot.Season.1-4.S01-04.COMPLETE.1080p.BluRay.WEB.10bit.DD5.1.x265-POIASD
+- 58 torrent files mapped against existing library
+- Python-assisted mapping verified sizes
+- exact torrent tree recreated as hardlinks
+- qBittorrent recheck succeeded
+- Sonarr later renamed library files while preserving hardlinks
+- S01E01 example inode:
+  28049452
+- same inode exists in:
+  /media/downloads/tv/...torrent tree...
+  /media/tv/Mr. Robot (2015)/Season 1/...Sonarr-renamed file...
+- link count 2
+
+============================================================
+SONARR
+============================================================
+
+CT 105:
+- Debian 13 LXC
+- unprivileged
+- VMID 105
+- bridge: vmbr1
+- VLAN: 40
+- IP: 10.0.40.12
+- MAC: BC:24:11:FF:94:4C
+- DHCP reservation
+- 2 CPU cores
+- 1 GB RAM
+- 512 MB swap
+- 12 GB local-lvm root disk
+- onboot enabled
+- /mnt/media -> /media
+
+Application:
+- Sonarr
+- TCP 8989
+
+Service user:
+- sonarr
+- uid observed: 102
+- primary/shared group:
+  media GID 5000
+
+systemd:
+- UMask=0002
+- live process Umask verified 0002
+
+Write test:
+- /media/tv
+- created file mode 664
+- ownership uid102/gid5000
+
+Hardlink test:
+- manually verified between qBittorrent source and Sonarr library
+
+Root folder:
+- /media/tv
+
+Media management:
+- Rename Episodes enabled
+- Use Hardlinks instead of Copy enabled
+
+Authentication:
+- Forms/Login
+- authentication required
+- Allowed Hosts blank
+- URL Base blank
+
+qBittorrent download client:
+- direct:
+  http://10.0.40.11:8080
+- SSL off
+- category: tv
+- deliberately NOT routed through Caddy
+
+Prowlarr integration:
+Prowlarr:
+http://10.0.40.14:9696
+
+Sonarr:
+http://10.0.40.12:8989
+
+Full Sync.
+
+Internal browser URL:
+https://sonarr.home.rvsteele.com
+
+Unbound:
+sonarr.home.rvsteele.com -> 10.0.10.3
+
+Caddy:
+10.0.10.3 -> 10.0.40.12:8989
+
+============================================================
+RADARR
+============================================================
+
+CT 106:
+- Debian 13 LXC
+- unprivileged
+- VMID 106
+- bridge: vmbr1
+- VLAN: 40
+- IP: 10.0.40.13
+- MAC: BC:24:11:18:4F:26
+- DHCP reservation
+- 2 CPU cores
+- 1 GB RAM
+- 512 MB swap
+- 12 GB local-lvm root disk
+- onboot enabled
+- /mnt/media -> /media
+
+Application:
+- Radarr
+- TCP 7878
+
+Service user:
+- radarr
+- uid observed: 102
+- group media GID 5000
+
+systemd:
+- UMask=0002
+- live Umask verified
+
+Write test:
+- /media/movies
+- succeeded
+
+Hardlink test:
+- succeeded
+
+Root:
+- /media/movies
+
+Media management:
+- Rename Movies enabled
+- hardlinks enabled
+
+Authentication:
+- same Forms/Login pattern
+- Allowed Hosts blank
+- URL Base blank
+
+qBittorrent:
+- direct 10.0.40.11:8080
+- category: movies
+
+Prowlarr:
+- direct 10.0.40.14:9696
+- Radarr endpoint 10.0.40.13:7878
+- Full Sync
+
+Internal browser URL:
+https://radarr.home.rvsteele.com
+
+Unbound:
+radarr.home.rvsteele.com -> 10.0.10.3
+
+Caddy:
+10.0.10.3 -> 10.0.40.13:7878
+
+============================================================
+PROWLARR
+============================================================
+
+CT 107:
+- Debian 13 LXC
+- unprivileged
+- VMID 107
+- bridge: vmbr1
+- VLAN: 40
+- IP: 10.0.40.14
+- MAC: BC:24:11:3B:00:B7
+- DHCP reservation
+- 1 CPU core
+- 1 GB RAM
+- 512 MB swap
+- 8 GB local-lvm root disk
+- onboot enabled
+- NO media mount required
+
+Application:
+- Prowlarr
+- TCP 9696
+
+Authentication:
+- same pattern as Sonarr/Radarr
+
+Apps:
+- Sonarr via direct VLAN IP
+- Radarr via direct VLAN IP
+- Full Sync
+
+Indexers configured/tested:
+- 1337x
+- LimeTorrents
+- YTS
+
+Observations:
+- 1337x required Cloudflare solving
+- LimeTorrents synced to Sonarr but apparently not Radarr due category compatibility
+- YTS works for Radarr
+- manual Radarr searches returned results
+
+Internal browser URL:
+https://prowlarr.home.rvsteele.com
+
+Unbound:
+prowlarr.home.rvsteele.com -> 10.0.10.3
+
+Caddy:
+10.0.10.3 -> 10.0.40.14:9696
+
+============================================================
+FLARESOLVERR
+============================================================
+
+FlareSolverr is installed directly inside CT 107 Prowlarr.
+
+Not Docker.
+
+Version:
+- 3.5.2
+
+Install:
+- /opt/flaresolverr
+
+Dedicated user:
+- flaresolverr
+- uid 999
+- gid 988 observed
+
+Service:
+- /etc/systemd/system/flaresolverr.service
+
+Settings:
+- bind HOST=127.0.0.1
+- PORT=8191
+- LOG_LEVEL=info
+- User/Group flaresolverr
+- WorkingDirectory /opt/flaresolverr
+- restart on failure
+
+Confirmed:
+- only listening on 127.0.0.1:8191
+- curl health returned ready/version 3.5.2
+
+Prowlarr Indexer Proxy:
+- URL http://127.0.0.1:8191
+- tag: flaresolverr
+- 1337x uses same tag
+
+Privacy:
+- Prowlarr/FlareSolverr use normal WAN
+- indexer sites can see home WAN IP
+- actual torrent tracker/DHT/peer traffic occurs through Proton via qBittorrent
+- FlareSolverr itself does not torrent
+
+============================================================
+QUALITY PROFILE DECISION
+============================================================
+
+Suggested baseline for Sonarr/Radarr:
+- primarily 1080p
+- avoid automatic 4K everywhere due 1 TB media disk
+- upgrades allowed
+- prefer WEB 1080p / WEB-DL and Bluray-1080p
+- Bluray-1080p can be upgrade cutoff
+- 4K profile can be separate later for selected content
+
+Exact final saved quality-profile settings were not confirmed.
+
+============================================================
+TERRARIA / GAMES VM
+============================================================
+
+VM 103:
+- Debian 13
+- hostname: games
+- QEMU VM, NOT LXC
+- 4 vCPU
+- 8 GB RAM
+- 64 GB disk
+- VirtIO NIC
+- QEMU guest agent enabled
+
+Network:
+- VLAN 50
+- IP: 10.0.50.10
+- MAC: BC:24:11:90:BE:0B
+- gateway 10.0.50.1
+
+SSH user:
+- remington
+
+Terraria:
+- native systemd service
+- v1.4.5.8
+- TCP 7777
+
+systemd:
+- /etc/systemd/system/terraria.service
+
+wrapper:
+- /usr/local/sbin/terraria-wrapper
+
+service user/group:
+- terraria
+
+world:
+- /opt/terraria/Worlds/The_Backdoor.wld
+
+config:
+- /opt/terraria/serverconfig.txt
+
+Clean shutdown:
+systemctl stop terraria
+
+Internal DNS:
+terraria.home.rvsteele.com -> 10.0.50.10
+
+Public:
+terraria.rvsteele.com:7777
+
+WAN NAT:
+TCP 7777
+OPNsense WAN -> 10.0.50.10:7777
+
+SSH TCP 22 MUST NOT be public.
+
+Cloudflare:
+- A record
+- terraria.rvsteele.com
+- DNS ONLY / gray cloud
+
+============================================================
+CLOUDFLARE DDNS
+============================================================
+
+OPNsense plugin:
+os-ddclient
+
+Required OPNsense >= 26.7.5 during setup.
+
+Configured:
+- native backend
+- Cloudflare provider
+- WAN interface IP checking
+- IPv4
+- scoped API token
+
+Token permissions:
+Zone -> DNS -> Edit
+specific zone rvsteele.com
+
+Cloudflare username field:
+blank
+
+Password field:
+API token
+
+Zone:
+rvsteele.com
+
+Hostname:
+terraria.rvsteele.com
+
+DDNS updates existing A record when Cox WAN changes.
+
+Do NOT delete the A record; DDNS updates it.
+
+============================================================
+CLOUDFLARE / CADDY CERTIFICATE TOKEN
+============================================================
+
+Separate token should be used for Caddy.
+
+Permissions:
+- Zone -> DNS -> Edit
+- Zone -> Zone -> Read
+
+Resource:
+- rvsteele.com only
+
+Never store token value in source control.
+
+============================================================
+DVD WATCH-NOW PROJECT
+============================================================
+
+Goal:
+- insert a physical DVD into the Proxmox machine
+- browse a local website
+- see DVD titles / episode-length tracks
+- select a title
+- stream it live to LG C3 OLED 77"
+- future internal URL intended:
+  https://dvd.home.rvsteele.com
+
+Potential future second mode:
+- rip movies/TV episodes into Jellyfin libraries
+
+Original VM approach:
+- VMID 108
+- Debian 13 VM
+- 2 cores initially
+- 2 GB RAM
+- 16 GB disk
+- VLAN 40
+- IP 10.0.40.15
+- MAC BC:24:11:93:C9:3F
+- physical optical drive attached through QEMU
+
+This VM approach was abandoned because optical DVD CSS/raw read behavior through QEMU was unreliable.
+
+VM 108 was destroyed and replaced.
+
+CURRENT DVDSTREAM HOST:
+
+CT 108:
+- hostname: dvdstream
+- privileged Debian 13 LXC
+- template:
+  debian-13-standard_13.1-2_amd64.tar.zst
+- bridge: vmbr1
+- VLAN: 40
+- DHCP
+- reserved IP: 10.0.40.15
+- MAC: BC:24:11:93:C9:3F
+- rootfs: local-lvm:16 GB
+- memory: 2048 MB
+- swap: 512 MB
+- onboot enabled
+- cores initially 2, later changed to 4 for testing
+
+Why privileged:
+- dedicated purpose is low-level physical optical drive access
+- avoids awkward unprivileged device mappings
+- do NOT give this container unnecessary media-disk mounts
+
+Container warning:
+- Proxmox reports:
+  "Systemd 257 detected. You may need to enable nesting."
+- container still starts
+- nesting need remains to be determined
+
+Device passthrough in:
+/etc/pve/lxc/108.conf
+
+Added:
+
+lxc.cgroup2.devices.allow: b 11:0 rwm
+lxc.cgroup2.devices.allow: c 21:1 rwm
+lxc.mount.entry: /dev/sr0 dev/sr0 none bind,optional,create=file
+lxc.mount.entry: /dev/sg1 dev/sg1 none bind,optional,create=file
+
+Inside CT 108:
+- /dev/sr0 visible
+- /dev/sg1 visible
+
+IMPORTANT SECURITY/DEVICE NOTE:
+- lsblk inside privileged CT 108 showed metadata for host sda/nvme through sysfs
+- only /dev/sr0 and /dev/sg1 are intentionally passed
+- do NOT mount/touch host disks from dvdstream
+
+DVD packages installed:
+- ffmpeg
+- lsdvd
+- libdvdnav4
+- libdvdread8t64
+- libdvd-pkg / libdvdcss
+- regionset was used during troubleshooting in prior VM
+
+FFmpeg:
+- dvdvideo demuxer available
+
+Example:
+
+ffmpeg -demuxers | grep dvd
+
+showed:
+dvdvideo DVD-Video
+
+Test DVD:
+- label:
+  REMINGTON_STEELE_S1_D2A
+
+lsdvd detected:
+
+Title 01:
+00:49:06
+13 chapters
+
+Title 02:
+00:49:07.500
+13 chapters
+
+Title 03:
+00:49:10.533
+13 chapters
+
+Title 04:
+00:49:13.500
+13 chapters
+
+Titles 05–08:
+- only seconds long
+- likely menus/transitions/extras
+
+DVDDiscID:
+80a728ce87848feaca37599519bb9398
+
+Longest title:
+04
+
+This demonstrates TV DVD box-set structure:
+- likely one ~49-minute episode per main title
+
+DVD CSS:
+- Debian does not include encrypted DVD support in base libdvdread
+- contrib enabled
+- libdvd-pkg used
+- libdvdcss successfully installed
+
+After direct LXC passthrough + libdvdcss:
+- FFmpeg successfully produced real decoded frames
+- 10-second null test reached:
+  frame=252
+  time=00:00:09.97
+- therefore DVD decryption and playback are fundamentally functional in the LXC
+
+A prior VM showed:
+- "Suspected RCE Region Protection"
+- libdvdcss CSS key errors
+- frame=0
+- these issues were substantially improved/eliminated by direct LXC device access
+
+Optical drive regionset observation from prior VM:
+- RPC Type: Phase I (Software)
+- no region code set
+- vendor reset count 0
+- user region changes 0
+- DO NOT blindly alter the region
+
+STREAMING TESTS:
+
+DVD stream-copy test:
+- no video encoding
+- MPEG-2/AC3 copied into MPEG-TS
+- after drive/key warmup, sustained approximately:
+  speed=1.13x
+- 60 seconds of content completed successfully in one run
+
+Software H.264 test:
+- libx264 ultrafast
+- AAC 128k
+- 2 cores produced ~0.70–0.76x
+- 4 cores did not solve overall issue and some runs stopped because optical drive read failed
+- CPU encoding alone is not currently the main focus
+
+HLS remux test:
+- MPEG-2 + AC3 directly copied into HLS TS segments
+- successfully created:
+  /tmp/dvd-hls/stream.m3u8
+  /tmp/dvd-hls/seg000.ts
+  /tmp/dvd-hls/seg001.ts
+- confirms HLS packaging itself works
+- test then aborted due optical drive ATA read error, not HLS failure
+
+Planned stream architecture:
+
+physical DVD
+-> /dev/sr0 + /dev/sg1
+-> CT 108 dvdstream
+-> FFmpeg dvdvideo
+-> preferably remux original MPEG-2/AC3 into HLS if LG C3 accepts it
+-> local web app
+-> Caddy
+-> dvd.home.rvsteele.com
+-> LG C3 browser
+
+Potential page concept:
+
+DVD inserted: <disc label>
+
+Title 1   49:06   WATCH
+Title 2   49:07   WATCH
+Title 3   49:10   WATCH
+Title 4   49:13   WATCH
+
+Optional:
+- Eject Disc
+
+For TV box sets:
+- one title per episode can be selected manually
+- future UI could allow show/season/disc metadata
+
+CURRENT DVDSTREAM BLOCKER:
+- physical optical-drive SATA link instability
+- NOT website code
+- NOT HLS
+- NOT primarily FFmpeg
+- NOT primarily CSS at this point
+
+Kernel errors observed:
+
+ata4.00: exception ...
+interface fatal error
+SError includes:
+- UnrecovData
+- PHYRdyChg
+- CommWake
+- 10B8B
+- BadCRC
+
+Read(10) produced:
+ATA bus error
+
+Kernel repeatedly:
+hard resetting link
+
+Action:
+- shut down Proxmox cleanly
+- reseat optical drive/slimline-SATA connector
+- reseat/replace adapter/cable if present
+- retest
+- if BadCRC returns, replace connection hardware/adapter before more software debugging
+
+Useful post-reseat test:
+
+ffmpeg
+  -loglevel warning
+  -stats
+  -f dvdvideo
+  -title 1
+  -i /dev/sr0
+  -t 120
+  -map 0:v:0
+  -map 0:a:0
+  -c copy
+  -f mpegts
+  /dev/null
+
+Expected:
+- reaches time=00:02:00
+- speed >= 1x once drive is warmed up
+
+Then on pve:
+
+dmesg -T | grep -Ei 'ata4|sr0|BadCRC|bus error|hard resetting' | tail -n 30
+
+Desired:
+- no NEW BadCRC / ATA bus errors
+
+============================================================
+PROXMOX / SERVICE HOST TABLE
+============================================================
+
+VM 100
+Role: OPNsense
+Type: VM
+Network:
+- WAN vmbr0/vtnet0
+- LAN trunk vmbr1/vtnet1
+RAM: 8 GB
+Disk: 32 GB
+CPU: verify exact current vCPU
+
+CT 101
+Role: Jellyfin
+Type: unprivileged Debian LXC
+IP: 10.0.40.10
+MAC: BC:24:11:E3:04:90
+VLAN: 40
+Mount: /mnt/media -> /media
+Port: 8096
+
+CT 102
+Role: qBittorrent
+Type: unprivileged Debian LXC
+IP: 10.0.40.11
+MAC: BC:24:11:97:E7:68
+VLAN: 40
+Mount: /mnt/media -> /media
+VPN: Proton WireGuard
+Port: 8080
+
+VM 103
+Role: Games / Terraria
+Type: Debian 13 VM
+IP: 10.0.50.10
+MAC: BC:24:11:90:BE:0B
+VLAN: 50
+Port: 7777/TCP
+
+CT 104
+Role: Caddy
+Type: unprivileged Debian LXC
+IP: 10.0.10.3
+MAC: BC:24:11:A9:2E:07
+VLAN: 10
+
+CT 105
+Role: Sonarr
+Type: unprivileged Debian 13 LXC
+IP: 10.0.40.12
+MAC: BC:24:11:FF:94:4C
+VLAN: 40
+Port: 8989
+Cores: 2
+RAM: 1 GB
+Swap: 512 MB
+Disk: 12 GB
+Mount: /mnt/media -> /media
+
+CT 106
+Role: Radarr
+Type: unprivileged Debian 13 LXC
+IP: 10.0.40.13
+MAC: BC:24:11:18:4F:26
+VLAN: 40
+Port: 7878
+Cores: 2
+RAM: 1 GB
+Swap: 512 MB
+Disk: 12 GB
+Mount: /mnt/media -> /media
+
+CT 107
+Role: Prowlarr + FlareSolverr
+Type: unprivileged Debian 13 LXC
+IP: 10.0.40.14
+MAC: BC:24:11:3B:00:B7
+VLAN: 40
+Prowlarr port: 9696
+FlareSolverr: 127.0.0.1:8191 only
+Cores: 1
+RAM: 1 GB
+Swap: 512 MB
+Disk: 8 GB
+
+CT 108
+Role: DVD Watch Now / optical streaming
+Type: privileged Debian 13 LXC
+IP: 10.0.40.15
+MAC: BC:24:11:93:C9:3F
+VLAN: 40
+Disk: 16 GB
+RAM: 2 GB
+Swap: 512 MB
+Cores: currently configured 4 after streaming test
+Physical devices:
+- /dev/sr0
+- /dev/sg1
+Status:
+- software stack partially complete
+- website not yet built
+- blocked on physical SATA/optical stability
+
+Proxmox host:
+IP: 10.0.10.2
+VLAN: 10
+
+EAP650:
+IP: 10.0.10.111
+VLAN: 10 management
+
+============================================================
+DEPENDENCIES
+============================================================
+
+Internet:
+Cox bridge
+-> enp3s0f0
+-> vmbr0
+-> OPNsense VM 100
+-> vmbr1/vtnet1
+-> VLANs
+-> AP/clients
+
+Internal DNS:
+OPNsense
+-> Unbound
+
+DHCP:
+OPNsense
+-> Dnsmasq
+
+Internal HTTPS:
+Unbound hostname
+-> 10.0.10.3
+-> Caddy CT 104
+-> Cloudflare DNS-01 certificate
+-> backend
+
+Jellyfin:
+- CT 101
+- host /mnt/media
+- /media bind
+- routing/firewall
+- Caddy for HTTPS
+
+qBittorrent:
+- CT 102
+- /mnt/media
+- Proton WireGuard
+- /etc/wireguard/proton.conf
+- OPNsense Proton endpoint alias/rules
+- OPNsense DNS
+- local HOME return route
+- Caddy for WebUI
+- boot ordering between network/DHCP and wg-quick is important
+
+Sonarr:
+- qBittorrent
+- Prowlarr
+- /media
+- shared media group
+- hardlinks
+
+Radarr:
+- qBittorrent
+- Prowlarr
+- /media
+- shared media group
+- hardlinks
+
+Jellyfin library freshness:
+- Sonarr imports -> /media/tv
+- Radarr imports -> /media/movies
+
+DVD Watch Now:
+- CT 108
+- physical /dev/sr0
+- /dev/sg1
+- optical SATA link
+- libdvdcss
+- FFmpeg dvdvideo
+- future HLS server/web app
+- future Caddy/Unbound
+- LG C3 browser/client
+
+Terraria:
+- VM 103
+- terraria.service
+- OPNsense WAN
+- TCP 7777 NAT
+- Cloudflare DDNS/public A record
+
+============================================================
+WAN / INTERNET EMERGENCY SHUTOFF
+============================================================
+
+If Cox usage is near cap:
+
+Preferred:
+OPNsense
+Interfaces -> WAN
+uncheck Enable interface
+Save / Apply
+
+This cuts Internet while preserving local networking as much as possible.
+
+Physical fallback:
+disconnect Cox Ethernet feeding enp3s0f0.
+
+Local services may remain usable:
+- Proxmox
+- Jellyfin
+- DNS
+- Caddy
+- Arr stack
+- DVD streaming
+
+IMPORTANT qBittorrent recovery note after WAN returns:
+- verify CT 102 DNS remains 10.0.40.1
+- verify wg-quick@proton starts
+- if wg-quick fails with "Nexthop has invalid gateway", wait for eth0/DHCP then restart Proton
+- qBittorrent intentionally will not start if Proton dependency failed
+
+============================================================
+ZENARMOR / NETWORK VISIBILITY
+============================================================
+
+ntopng was tested and later replaced/removed.
+
+Previously:
+- os-ntopng
+- os-redis
+
+Zenarmor selected as better fit.
+
+Any old:
+ntop.home.rvsteele.com
+
+DNS/Caddy config should be removed if still present.
+
+Zenarmor:
+- Free Edition selected
+- deployment size up to 25 devices
+- local SQLite
+- local Elasticsearch avoided
+
+Chosen/planned:
+- Routed Mode / L3
+- Reporting + Blocking
+- emulated netmap
+- monitor parent vtnet1 trunk
+- avoid monitoring both parent and all VLAN child interfaces
+- security zone lan
+- WAN not separately inspected
+
+Desired:
+- per-device visibility
+- bandwidth usage
+- identify bandwidth hogs
+- block/enable devices
+- per-device policies
+
+Free edition has policy limits.
+Zenarmor Home discussed.
+
+============================================================
+OPNSENSE MEMORY NOTE
+============================================================
+
+Proxmox graph can misleadingly show near-full RAM for FreeBSD.
+
+Previously inside OPNsense at 4 GB:
+- Active ~187 MB
+- Inactive ~167 MB
+- Wired ~478 MB
+- ARC ~214 MB
+- Free ~3074 MB
+- Swap 0
+
+Use:
+top -o res
+swapinfo -h
+
+instead of assuming Proxmox graph means OOM.
+
+RAM later increased to 8 GB.
+
+============================================================
+SSH SECURITY
+============================================================
+
+Dedicated homelab SSH key exists on user's Mac:
+
+~/.ssh/homelab_ed25519
+~/.ssh/homelab_ed25519.pub
+
+Type:
+Ed25519
+
+Comment:
+homelab
+
+Private key MUST remain on Mac and never enter repository/source-of-truth.
+
+Added to macOS keychain.
+
+Security decision:
+- keep password authentication as emergency fallback
+- SSH key preferred
+- unique randomized 18+ character password per host
+- passwords in password manager only
+- root SSH login can be disabled where practical
+- standard admin user remington where practical
+- sudo without NOPASSWD by default
+
+Games VM:
+- remington@10.0.50.10
+- public key installed
+- key auth confirmed
+
+Other hosts still need SSH audit.
+
+============================================================
+OPENCLAW / FUTURE HOMELAB AGENT
+============================================================
+
+Desired:
+- broad read-only visibility
+- topology
+- hosts
+- IPs
+- VLANs
+- storage
+- dependencies
+- OPNsense
+- DNS/DHCP
+- Caddy
+- configs
+- logs
+
+Write model:
+agent proposes exact change/diff
+-> asks permission
+-> applies only after approval
+-> verifies
+-> records
+
+Do NOT give unrestricted root SSH everywhere.
+
+Preferred:
+- dedicated Debian VM
+- likely HOME/management VLAN
+- read-only APIs where possible
+- approval-gated privileged path
+- Git source of truth
+- Ansible
+- discovery snapshots
+- secrets external to repo/prompts
+
+============================================================
+TOR WIFI IDEA — NOT DEPLOYED
+============================================================
+
+SSID:
+Tor / Tor-WiFi
+
+VLAN:
+60
+
+Subnet:
+10.0.60.0/24
+
+Possible architecture:
+EAP VLAN 60
+-> dedicated Debian Tor gateway
+-> Tor
+-> Internet
+
+Desired fail closed:
+- TCP through Tor
+- DNS through Tor
+- no direct WAN fallback
+- IPv6 disabled initially
+- unsupported UDP blocked
+- Tor failure means no Internet
+
+Tor Browser still recommended for anonymity because transparent gateway does not provide browser fingerprinting/cookie/isolation protections.
+
+============================================================
+KNOWN PROBLEMS / QUIRKS
+============================================================
+
+1. qBittorrent DNS
+- old nameserver 192.168.0.1 caused failure after WAN outage
+- corrected to 10.0.40.1
+
+2. qBittorrent Proton startup race
+- wg-quick can start before DHCP gives eth0 a usable 10.0.40.x route
+- PostUp HOME route then fails
+- qBittorrent dependency consequently fails
+- permanent network-online ordering fix still needed
+
+3. EAP/Caddy
+- ap.home.rvsteele.com can login but show blank page afterward
+- direct IP works
+- proxy-header workaround proposed
+- final state not verified
+
+4. router.home.rvsteele.com
+- historical 400 Bad Request on refresh
+- HTTP/1.1 / Host-header workaround attempted
+- final status still needs verification
+
+5. Optical drive SATA
+- ata4 reports BadCRC / ATA bus errors under DVD read load
+- physical connection must be addressed before Watch Now project proceeds
+
+6. CT 108 Systemd 257 warning
+- Proxmox warns nesting may be needed
+- no confirmed functional problem yet
+
+============================================================
+PLANNED / DESIRED STATE
+============================================================
+
+DVD Watch Now:
+- fix physical SATA stability
+- serve local title list from CT 108
+- choose episode/movie title
+- FFmpeg live HLS
+- preferably remux MPEG-2/AC3 without transcoding if LG C3 browser supports it reliably
+- expose internally through Caddy:
+  https://dvd.home.rvsteele.com
+- create Unbound override:
+  dvd.home.rvsteele.com -> 10.0.10.3
+- Caddy backend likely:
+  10.0.40.15:<future port>
+- optional Eject button
+- optional future Rip mode for permanent Jellyfin media
+
+Homelab source of truth:
+- declarative host/network/service files
+- live snapshots
+- runbooks
+- Ansible
+- Git history
+
+Possible Jellyfin hardening:
+- make media bind read-only if practical
+
+Possible future:
+- 4K-specific Arr quality profile
+- VLAN 99 MGMT
+- VLAN 60 Tor
+- OpenClaw management agent
+
+============================================================
+UNKNOWN / NEEDS VERIFICATION
+============================================================
+
+- exact current /etc/network/interfaces on Proxmox
+- whether temporary 192.168.1.0/24 OPNsense LAN remains
+- whether temporary WAN WebGUI rule remains
+- WAN private/bogon settings
+- old AP source NAT removal
+- old ntop DNS/Caddy removal
+- exact Zenarmor running state
+- exact OPNsense VM vCPU count
+- router.home.rvsteele.com refresh bug final status
+- ap.home.rvsteele.com post-login blank-screen final status
+- exact current Caddyfile
+- exact current Unbound overrides
+- exact current Dnsmasq reservations
+- exact current OPNsense firewall/NAT ordering
+- qBittorrent deliberate kill-switch failure test
+- qBittorrent permanent systemd/network-online fix
+- current Proton endpoint
+- current Cox public IP
+- current exact OPNsense version
+- current exact Proxmox package version
+- /mnt/media filesystem UUID
+- media disk SMART health
+- backup strategy
+- Proxmox backup jobs
+- UPS / power-loss handling
+- SSH state on remaining hosts
+- final Sonarr/Radarr quality profiles
+- whether the mistaken empty Mārama folder was actually removed
+- CT 108 nesting requirement
+- optical drive SATA connection repair outcome
+- whether LG C3 accepts the planned direct MPEG-2/AC3 HLS stream in its browser
+- final dvdstream HTTP port / application implementation
+- final dvd.home.rvsteele.com DNS/Caddy setup
+
+============================================================
+USEFUL RUNBOOKS TO CREATE
+============================================================
+
+runbooks/internet-outage.md
+- disable/reenable WAN
+- qBittorrent DNS recovery
+- Proton restart
+- boot-order race
+- verification commands
+
+runbooks/qbittorrent-vpn.md
+- wg show proton
+- systemctl status wg-quick@proton
+- qBittorrent dependency
+- OPNsense endpoint rules
+- DNS 10.0.40.1
+- HOME PostUp route
+- leak testing
+
+runbooks/media-hardlinks.md
+- category relocation
+- cp -al recovery
+- inode verification
+- qBittorrent recheck
+- Sonarr/Radarr service stop/start order
+
+runbooks/jellyfin.md
+- libraries
+- Caddy
+- IOT firewall
+- scan task
+- hardlink verification
+
+runbooks/dvdstream.md
+- CT 108 details
+- /dev/sr0 and /dev/sg1 passthrough
+- libdvdcss setup
+- lsdvd
+- FFmpeg test commands
+- HLS generation
+- optical SATA BadCRC diagnosis
+- physical reseat/replacement procedure
+
+runbooks/opnsense-recovery.md
+- single-user password reset
+
+runbooks/terraria.md
+- service stop/save/reboot behavior
+
+============================================================
+SOURCE-OF-TRUTH PRINCIPLES
+============================================================
+
+Do not store:
+- passwords
+- Cloudflare API token values
+- WireGuard private keys
+- SSH private keys
+- OPNsense private keys
+- certificate private keys
+- recovery codes
+
+It is okay to document:
+- secret location
+- purpose
+- provider/account
+- required permission scope
+
+Prefer declarative records for:
+- hosts
+- services
+- networks
+- dependencies
+- firewall intent
+
+Prefer snapshots for:
+- live discovered state
+
+Prefer runbooks for:
+- outages
+- recovery
+- service-specific quirks
+
+Prefer Git history for:
+- why configurations changed
+
+Always distinguish:
+
+INTENT:
+what the homelab should look like
+
+STATE:
+what discovery shows right now
+
+This separation will make future Codex/OpenClaw management safer.
+
+extra context about terraria server possibly missing:
+============================================================
+ADDITIONAL TERRARIA / GAMES VM DETAILS
+============================================================
+
+VM 103 hardware/config details not previously recorded:
+- CPU type: host
+- Disk controller: VirtIO SCSI Single
+- QEMU guest agent installed and confirmed working
+- Proxmox VM networking originally used vmbr0 untagged during initial build
+- Original temporary pre-OPNsense LAN IP:
+  192.168.0.231
+- That old address is historical only; current state is VLAN 50 / 10.0.50.10
+
+Terraria installation layout:
+- Current version directory:
+  /opt/terraria/bin/1458
+- Old restored version retained:
+  /opt/terraria/bin/1449
+- Stable service symlink:
+  /opt/terraria/current
+  -> /opt/terraria/bin/1458
+
+Additional world backups:
+- /opt/terraria/Worlds/The_Backdoor.wld.bak
+- /opt/terraria/Worlds/The_Backdoor.wld.bak2
+- pre-migration safety copy created:
+  /opt/terraria/Worlds/The_Backdoor.pre-migration.wld
+
+Terraria config non-secret values:
+- worldname: The Backdoor
+- maxplayers: 16
+- secure: 1
+- logpath:
+  /opt/terraria/logs
+- MOTD configured
+- server password exists in serverconfig.txt but MUST NOT be stored in source of truth
+
+Systemd implementation details:
+- terraria.service is enabled at boot
+- reboot persistence was explicitly tested successfully
+- Type=simple
+- RuntimeDirectory=terraria
+- RuntimeDirectoryMode=0750
+- WorkingDirectory=/opt/terraria/current/Linux
+- ExecStart=/usr/local/sbin/terraria-wrapper
+- Restart=on-failure
+- RestartSec=5
+- KillMode=mixed
+- TimeoutStopSec=90
+- ReadWritePaths:
+  /opt/terraria
+  /run/terraria
+
+Terraria wrapper behavior:
+- wrapper creates:
+  /run/terraria/console
+- this is a FIFO used as Terraria stdin
+- on systemd SIGTERM, wrapper sends:
+  exit
+- Terraria then performs a clean save and shutdown
+- verified shutdown output included:
+  "Saving before exit..."
+- systemd then reported:
+  "Deactivated successfully."
+
+IMPORTANT HISTORICAL QUIRK / RECOVERY NOTE:
+
+The restored backup contained Terraria Server 1.4.4.9, but the
+The_Backdoor world files had world-format header/version 318.
+
+Symptoms under 1.4.4.9:
+- server binary itself launched normally
+- loading The_Backdoor.wld caused:
+  System.NullReferenceException
+  at Terraria.Main.DedServ()
+- .wld, .bak, and .bak2 all behaved the same
+
+Resolution:
+- installed Terraria Server 1.4.5.8 alongside 1.4.4.9
+- changed /opt/terraria/current symlink to /opt/terraria/bin/1458
+- same world then loaded successfully
+- player "rembo" successfully joined during testing
+- do not attempt to recover this world using the retained 1.4.4.9 server binary
+
+Useful Terraria commands:
+
+systemctl status terraria
+sudo systemctl start terraria
+sudo systemctl stop terraria
+sudo systemctl restart terraria
+
+sudo journalctl -u terraria -f
+sudo ss -ltnp | grep 7777
+
+Manual console FIFO can accept commands while server is running, e.g.:
+echo save | sudo tee /run/terraria/console
+
+Normally prefer systemctl for stop/restart because the wrapper handles
+the clean "exit" command automatically.

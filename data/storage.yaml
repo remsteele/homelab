@@ -1,0 +1,89 @@
+schema_version: 1
+devices:
+  - id: system-nvme
+    status: confirmed
+    host: pve
+    model: SK hynix BC711 NVMe
+    nominal_size_gb: 512
+    visible_size_gib: 476.9
+    purpose: Proxmox system and local LVM storage
+    layout: ext4/LVM Proxmox installation
+  - id: media-hdd
+    status: confirmed
+    host: pve
+    model: WDC WD10JPLX-00MBPT0
+    device: /dev/sda
+    partition: /dev/sda1
+    nominal_size_tb: 1
+    visible_size_gib: 931.5
+    filesystem: ext4
+    label: media
+    filesystem_uuid: needs_verification
+    mountpoint: /mnt/media
+    smart_health: needs_verification
+
+media_bind:
+  status: confirmed
+  host_root: /mnt/media
+  container_root: /media
+  consumers:
+    - {host: jellyfin, access: read-write-current, desired_access: read-only-possible}
+    - {host: qbittorrent, access: read-write}
+    - {host: sonarr, access: read-write}
+    - {host: radarr, access: read-write}
+  non_consumers:
+    - caddy
+    - prowlarr
+    - dvdstream
+  design:
+    - All download and library paths share one filesystem.
+    - Hardlinks and atomic moves are supported.
+    - Do not split downloads and libraries into unrelated mounts if hardlinks are desired.
+    - Do not use mode 777.
+
+layout:
+  - {path: /mnt/media/downloads/incomplete/Movies, role: incomplete movie downloads}
+  - {path: /mnt/media/downloads/incomplete/TV, role: incomplete TV downloads}
+  - {path: /mnt/media/downloads/movies, role: completed movie seeding source}
+  - {path: /mnt/media/downloads/tv, role: completed TV seeding source}
+  - {path: /mnt/media/movies, role: Radarr movie library and Jellyfin source}
+  - {path: /mnt/media/tv, role: Sonarr TV library and Jellyfin source}
+
+permissions:
+  status: confirmed
+  container_group: {name: media, gid: 5000}
+  host_mapped_gid: 105000
+  id_mapping:
+    container_uid_0_to_host: 100000
+    container_gid_0_to_host: 100000
+    range: 65536
+  writable_members:
+    - qbittorrent
+    - sonarr
+    - radarr
+  excluded_members:
+    - {service: jellyfin, reason: Least privilege; reads through normal read bits}
+  conventions:
+    directory_mode: "2775"
+    file_mode: "0664"
+    service_umask: "0002"
+    root_path_note: /media itself appears as 65534:65534 inside unprivileged containers but is mode 755 and traversable.
+
+hardlink_evidence:
+  status: historical
+  note: Inode values are observations useful for audit, not stable identifiers after migration/restore.
+  items:
+    - {title: The Menu, inode: 28049417, link_count: 2, result: verified}
+    - {title: Obsession, inode: 28049454, link_count: 2, result: verified}
+    - {title: Aftersun, inode: not-recorded, link_count: 2, result: verified}
+    - {title: "The Last First - Winter K2 (2026)", inode: 28049482, link_count: 2, result: verified}
+    - {title: "Mārama main MKV", inode: 28049484, link_count: 2, result: verified}
+    - {title: "Mārama NFO", inode: 28049414, link_count: 2, result: verified}
+    - {title: "Mr. Robot S01E01 example", inode: 28049452, link_count: 2, result: verified}
+
+backup:
+  strategy: needs_verification
+  proxmox_jobs: needs_verification
+  offsite_copy: needs_verification
+  restore_test: needs_verification
+

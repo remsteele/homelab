@@ -1,0 +1,110 @@
+schema_version: 1
+platform: OPNsense
+semantics:
+  stateful: true
+  ingress_evaluation: Rules are evaluated on the interface where traffic enters OPNsense.
+  same_vlan_note: Traffic between services on VLAN 40 is switched locally and does not traverse inter-VLAN rules.
+  current_order_warning: Exact live rule order and automatically generated rules need a sanitized export.
+
+aliases:
+  - id: local_nets
+    status: confirmed
+    opnsense_name: LOCAL_NETS
+    type: networks
+    values: [10.0.0.0/8, 172.16.0.0/12, 192.168.0.0/16]
+    purpose: Block untrusted VLANs from initiating to internal RFC1918 networks.
+  - id: proton_endpoint
+    status: needs_verification
+    opnsense_name: PROTON_ENDPOINT
+    type: host
+    values: [146.70.195.82]
+    purpose: Only permitted non-DNS WAN destination for qBittorrent CT.
+    warning: Update if the Proton WireGuard configuration/server changes.
+
+interface_policies:
+  - interface: HOME
+    vlan: home
+    policy_status: confirmed
+    posture: trusted-broad-access
+    rules:
+      - order: 10
+        action: pass
+        family: IPv4
+        protocol: any
+        source: HOME net
+        destination: any
+        description: TEMP - HOME allow all
+        status: confirmed
+        hardening: Tighten eventually.
+
+  - interface: IOT
+    vlan: iot
+    policy_status: confirmed
+    rules:
+      - {order: 10, action: pass, family: IPv4, protocol: TCP/UDP, source: IOT net, destination: This Firewall, destination_port: 53, description: IOT DNS to OPNsense}
+      - {order: 20, action: pass, family: IPv4, protocol: TCP, source: IOT net, destination: 10.0.40.10, destination_port: 8096, description: LG TV or IOT clients to Jellyfin, applicability: Required if the TV is on IOT}
+      - {order: 30, action: block, family: IPv4, protocol: any, source: IOT net, destination: LOCAL_NETS, description: Block IOT initiation to private networks}
+      - {order: 40, action: pass, family: IPv4, protocol: any, source: IOT net, destination: any, description: Permit Internet}
+
+  - interface: GUEST
+    vlan: guest
+    policy_status: confirmed
+    rules:
+      - {order: 10, action: pass, family: IPv4, protocol: TCP/UDP, source: GUEST net, destination: This Firewall, destination_port: 53, description: Guest DNS to OPNsense}
+      - {order: 20, action: block, family: IPv4, protocol: any, source: GUEST net, destination: LOCAL_NETS, description: Block guest initiation to private networks}
+      - {order: 30, action: pass, family: IPv4, protocol: any, source: GUEST net, destination: any, description: Permit Internet}
+
+  - interface: SERVERS
+    vlan: servers
+    policy_status: confirmed
+    rules:
+      - {order: 10, action: pass, family: IPv4, protocol: TCP/UDP, source: 10.0.40.11, destination: This Firewall, destination_port: 53, description: qBit - allow DNS to OPNsense}
+      - {order: 20, action: pass, family: IPv4, protocol: UDP, source: 10.0.40.11, destination: PROTON_ENDPOINT, destination_port: 51820, description: qBit - allow Proton WireGuard}
+      - {order: 30, action: block, family: IPv4, protocol: any, source: 10.0.40.11, destination: any, description: qBit - block all non-Proton egress}
+      - {order: 40, action: pass, family: IPv4, protocol: TCP/UDP, source: SERVERS net, destination: This Firewall, destination_port: 53, description: Server DNS to OPNsense}
+      - {order: 50, action: block, family: IPv4, protocol: any, source: SERVERS net, destination: LOCAL_NETS, description: Block server initiation to private networks}
+      - {order: 60, action: pass, family: IPv4, protocol: any, source: SERVERS net, destination: any, description: Permit Internet}
+    critical_ordering: Rules 10-30 for 10.0.40.11 must precede the generic server rules.
+
+  - interface: DMZ
+    vlan: dmz
+    policy_status: confirmed
+    rules:
+      - {order: 10, action: pass, family: IPv4, protocol: TCP/UDP, source: DMZ net, destination: This Firewall, destination_port: 53, description: DMZ DNS to OPNsense}
+      - {order: 20, action: block, family: IPv4, protocol: any, source: DMZ net, destination: LOCAL_NETS, description: Block DMZ initiation to private networks}
+      - {order: 30, action: pass, family: IPv4, protocol: any, source: DMZ net, destination: any, description: Permit Internet}
+
+nat:
+  port_forwards:
+    - id: terraria
+      status: confirmed
+      interface: WAN
+      protocol: TCP
+      external_port: 7777
+      destination: 10.0.50.10
+      destination_port: 7777
+      public_name: terraria.rvsteele.com
+      constraints:
+        - Do not expose SSH TCP 22.
+        - Cloudflare record must remain DNS-only.
+  outbound_or_source_nat:
+    - id: temporary-ap-management
+      status: needs_verification
+      purpose: Temporary access while AP management was on 192.168.1.x
+      expected_state: removed
+
+wan_security:
+  intended_webgui_exposure: false
+  current_webgui_exposure: needs_verification
+  temporary_webgui_rule_present: needs_verification
+  block_private_networks: needs_verification
+  block_bogon_networks: needs_verification
+  note: Cox bridge management at 192.168.0.1 may affect private-network policy; verify deliberately.
+
+explicit_non_exposures:
+  - {service: Jellyfin, port: 8096, wan_exposure: prohibited}
+  - {service: qBittorrent WebUI, port: 8080, wan_exposure: prohibited}
+  - {service: OPNsense WebGUI, port: 443, wan_exposure: prohibited, current_state: needs_verification}
+  - {service: SSH on games VM, port: 22, wan_exposure: prohibited}
+  - {service: Caddy internal HTTPS, ports: "80/443", wan_exposure: not-required, reason: Cloudflare DNS-01 certificates}
+

@@ -1,0 +1,61 @@
+schema_version: 1
+plans:
+  - id: dvd-watch-now
+    status: planned
+    goal: Select a physical DVD title in a local web UI and stream it to the LG C3.
+    sequence:
+      - Repair and verify the physical optical SATA path.
+      - Build title discovery and HLS session management in CT 108.
+      - Prefer stream-copy MPEG-2/AC3 HLS if LG C3 compatibility is acceptable.
+      - Assign an internal application port.
+      - Add dvd.home.rvsteele.com to Unbound pointing at Caddy.
+      - Add Caddy reverse proxy to 10.0.40.15 on the selected port.
+      - Test start, stop, concurrent-session, eject, and disc-removal behavior.
+    optional_future: Rip selected movies/episodes into Jellyfin libraries.
+
+  - id: tor-wifi
+    status: planned
+    goal: Dedicated fail-closed transparent Tor SSID on VLAN 60.
+    architecture: EAP650 VLAN 60 -> dedicated Debian Tor gateway -> Tor -> Internet
+    requirements:
+      - TCP routed through Tor
+      - DNS routed through Tor
+      - No direct-WAN fallback
+      - IPv6 disabled initially
+      - Unsupported UDP blocked
+      - Tor failure means no Internet
+    caveat: Tor Browser remains recommended for fingerprint/cookie/isolation protection.
+
+  - id: management-vlan
+    status: planned
+    vlan_id: 99
+    note: No subnet or migration design is confirmed; management remains on VLAN 10.
+
+  - id: homelab-agent
+    status: planned
+    name: OpenClaw
+    placement: Dedicated Debian VM, probably HOME/management VLAN
+    access:
+      - Broad read-only topology, configuration, API, and log visibility
+      - Read-only APIs where possible
+      - Approval-gated privileged path
+      - No unrestricted root SSH everywhere
+    change_workflow:
+      - Propose exact diff
+      - Ask permission
+      - Apply narrowly
+      - Verify
+      - Record in Git and snapshots
+
+  - id: jellyfin-read-only-media
+    status: proposed
+    goal: Convert Jellyfin media bind to read-only if feature operation remains correct.
+
+  - id: home-firewall-tightening
+    status: planned
+    goal: Replace TEMP HOME allow-all with least-privilege management/client policy.
+
+  - id: selected-4k-profile
+    status: proposed
+    goal: Add a separate 4K profile for selected content without making 4K the default.
+

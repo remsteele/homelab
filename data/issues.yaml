@@ -1,0 +1,76 @@
+schema_version: 1
+issues:
+  - id: qbittorrent-wireguard-boot-race
+    status: confirmed
+    severity: high
+    affects: [qbittorrent, proton-wireguard]
+    symptom: wg-quick@proton fails and qBittorrent remains inactive after CT reboot.
+    error: "Error: Nexthop has invalid gateway."
+    cause: The PostUp HOME route can run before DHCP/networking makes 10.0.40.1 usable on eth0.
+    permanent_fix: needs_verification
+    constraint: Preserve fail-closed behavior.
+    runbook: runbooks/qbittorrent-vpn.md
+
+  - id: qbittorrent-stale-dns
+    status: historical
+    severity: resolved
+    affects: [qbittorrent]
+    symptom: IP connectivity through Proton worked but DNS lookups failed after WAN disable.
+    cause: /etc/resolv.conf pointed at old 192.168.0.1.
+    correction: Proxmox LXC DNS set to 10.0.40.1 with search domain home.rvsteele.com.
+    command: pct set 102 -nameserver 10.0.40.1 -searchdomain home.rvsteele.com
+
+  - id: eap-reverse-proxy-blank-ui
+    status: needs_verification
+    severity: medium
+    affects: [eap-webui, caddy]
+    symptom: Login page and authentication work through Caddy, then UI goes blank; direct IP works.
+    suspected_cause: Origin, Referer, Host, or forwarded-header incompatibility in the AP web app.
+    proposed_fix: Override Host and strip X-Forwarded-Host, X-Forwarded-Proto, and X-Forwarded-For.
+    next_evidence: Browser developer-tools network/console failures after login.
+
+  - id: router-reverse-proxy-refresh
+    status: needs_verification
+    severity: medium
+    affects: [opnsense-webgui, caddy]
+    symptom: Historical 400 Bad Request on refresh through router.home.rvsteele.com.
+    attempted_fix: HTTP/1.1 and Host-header workaround.
+
+  - id: optical-sata-instability
+    status: confirmed
+    severity: high
+    affects: [dvd-inspection, dvd-watch-now]
+    symptom: Sustained DVD reads stop with ata4 BadCRC, bus error, and hard link resets.
+    cause: Physical drive/cable/adapter/connector path is the leading diagnosis.
+    not_primary_causes: [website-code, HLS-packaging, FFmpeg, DVD-CSS]
+    next_action: Clean shutdown, reseat connection, retest, then replace cable/adapter if errors recur.
+    runbook: runbooks/dvdstream.md
+
+  - id: dvdstream-systemd-257-warning
+    status: needs_verification
+    severity: low
+    affects: [dvdstream]
+    symptom: Proxmox warns that systemd 257 may require nesting.
+    impact: Container still starts; no confirmed functional failure.
+
+  - id: proxmox-freebsd-memory-graph
+    status: confirmed
+    severity: informational
+    affects: [router]
+    symptom: Proxmox can show OPNsense RAM as nearly full even when FreeBSD has ample reclaimable/free memory.
+    diagnostic_commands: ["top -o res", "swapinfo -h"]
+    historical_4g_observation:
+      active_mib: 187
+      inactive_mib: 167
+      wired_mib: 478
+      arc_mib: 214
+      free_mib: 3074
+      swap_used: 0
+
+  - id: marama-empty-folder-cleanup
+    status: needs_verification
+    severity: low
+    affects: [media-storage]
+    symptom: A mistaken empty folder with different spacing/case existed after migration.
+    expected_state: removed
+

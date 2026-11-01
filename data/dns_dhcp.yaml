@@ -1,0 +1,84 @@
+schema_version: 1
+architecture:
+  status: confirmed
+  dhcp_server:
+    implementation: OPNsense Dnsmasq
+    reservation_behavior: Reservations do not automatically imply the required Unbound host override.
+  resolver:
+    implementation: OPNsense Unbound
+    listen_port: 53
+  dnsmasq_dns:
+    listen_port: 53053
+  internal_record_policy: Create static names in Unbound DNS Host Overrides.
+
+dhcp_pools:
+  - {vlan: home, start: 10.0.10.100, end: 10.0.10.199, status: confirmed}
+  - {vlan: iot, start: 10.0.20.100, end: 10.0.20.199, status: confirmed}
+  - {vlan: guest, start: 10.0.30.100, end: 10.0.30.199, status: confirmed}
+  - {vlan: servers, start: 10.0.40.100, end: 10.0.40.199, status: confirmed}
+  - {vlan: dmz, start: 10.0.50.100, end: 10.0.50.199, status: confirmed}
+
+reservations:
+  status: needs_verification
+  note: The hosts are reported as reservations, but the exact live Dnsmasq export has not been captured.
+  expected:
+    - {host: caddy, ip: 10.0.10.3, mac: "bc:24:11:a9:2e:07"}
+    - {host: eap650, ip: 10.0.10.111, mac: needs_verification}
+    - {host: jellyfin, ip: 10.0.40.10, mac: "bc:24:11:e3:04:90"}
+    - {host: qbittorrent, ip: 10.0.40.11, mac: "bc:24:11:97:e7:68"}
+    - {host: sonarr, ip: 10.0.40.12, mac: "bc:24:11:ff:94:4c"}
+    - {host: radarr, ip: 10.0.40.13, mac: "bc:24:11:18:4f:26"}
+    - {host: prowlarr, ip: 10.0.40.14, mac: "bc:24:11:3b:00:b7"}
+    - {host: dvdstream, ip: 10.0.40.15, mac: "bc:24:11:93:c9:3f"}
+    - {host: games, ip: 10.0.50.10, mac: "bc:24:11:90:be:0b"}
+
+internal_records:
+  status: needs_verification
+  note: Values below are reported intended/current mappings; capture the live Unbound override list to verify completeness.
+  records:
+    - {name: router.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    - {name: pve.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    - {name: ap.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    - {name: jellyfin.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    - {name: qbittorrent.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    - {name: sonarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
+    - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
+    - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
+    - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
+    - {name: dvd.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Future Caddy proxy, status: planned}
+    - {name: ntop.home.rvsteele.com, type: A, value: unknown, purpose: Obsolete ntopng UI, status: needs_verification, action: Remove if present}
+
+public_records:
+  - name: terraria.rvsteele.com
+    type: A
+    value: dynamic-wan-ipv4
+    proxy: false
+    status: confirmed
+    managed_by: OPNsense os-ddclient
+    note: Do not delete; DDNS updates the existing record.
+
+dynamic_dns:
+  - id: terraria-cloudflare
+    status: confirmed
+    client: OPNsense os-ddclient
+    backend: native
+    provider: Cloudflare
+    interface: WAN
+    address_family: IPv4
+    zone: rvsteele.com
+    hostname: terraria.rvsteele.com
+    credential_field: OPNsense password field contains a scoped API token; value is excluded.
+    username_field: blank
+    required_scope:
+      - "Zone / DNS / Edit on rvsteele.com"
+
+historical_observations:
+  - status: historical
+    record: Cox WAN IPv4 was 98.176.159.214
+    warning: Dynamic observation; never treat as a fixed address.
+  - status: historical
+    host: qbittorrent
+    stale_nameserver: 192.168.0.1
+    corrected_nameserver: 10.0.40.1
+    impact: Name resolution failed through the otherwise healthy Proton tunnel after WAN disable/recovery.
+

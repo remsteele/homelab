@@ -1,0 +1,80 @@
+schema_version: 1
+compute:
+  - id: pve-machine
+    status: confirmed
+    role: Proxmox bare-metal host
+    cpu: Intel Core i5-10600
+    memory_gib: 32
+    nics:
+      - id: wan-i350
+        interface: enp3s0f0
+        mac: "98:b7:85:25:80:6f"
+        hardware: Intel I350-based dual-port 10Gtek card
+        purpose: WAN physical interface
+        connected_to: cox-gateway
+      - id: lan-i350
+        interface: enp3s0f1
+        mac: "98:b7:85:25:80:70"
+        hardware: Intel I350-based dual-port 10Gtek card
+        purpose: LAN VLAN trunk
+        connected_to: eap650
+      - id: onboard-nic
+        status: confirmed
+        hardware: Killer E2600 / Realtek
+        driver: r8169
+        use: do-not-use
+        faults:
+          - NETDEV WATCHDOG
+          - PCIe AER failures
+          - PCIe link loss and retraining failures
+          - BadCRC and link issues
+    optical_drive:
+      model: HL-DT-ST DVD+/-RW GU90N
+      block_device: /dev/sr0
+      block_major_minor: "11:0"
+      symlink: /dev/cdrom
+      scsi_generic_device: /dev/sg1
+      scsi_generic_major_minor: "21:1"
+      observed_owner: root:cdrom
+      status: confirmed
+      health: unstable-physical-link
+      evidence:
+        - ata4 interface fatal errors and ATA bus errors under sustained reads
+        - BadCRC, UnrecovData, PHYRdyChg, 10B8B, and hard link resets
+      action: Reseat the slimline-SATA path and replace cable/adapter if errors recur.
+
+network_appliances:
+  - id: cox-gateway
+    status: confirmed
+    mode: bridge
+    management_ip: 192.168.0.1
+    management_ip_note: Remained reachable while bridged; current reachability needs verification.
+  - id: eap650
+    status: confirmed
+    model: TP-Link Omada EAP650 AX3000
+    mode: standalone management
+    management_ip: 10.0.10.111
+    connected_to: pve-machine/enp3s0f1
+
+clients:
+  - id: lg-c3
+    status: confirmed
+    model: LG C3 OLED
+    size_inches: 77
+    roles:
+      - Jellyfin client
+      - planned DVD Watch Now client
+
+physical_topology:
+  status: confirmed
+  ordered_path:
+    - Internet
+    - Cox gateway in bridge mode
+    - pve enp3s0f0
+    - Proxmox vmbr0
+    - OPNsense vtnet0 WAN
+    - OPNsense vtnet1 LAN trunk
+    - Proxmox vmbr1
+    - pve enp3s0f1
+    - EAP650
+

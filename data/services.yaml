@@ -1,0 +1,387 @@
+schema_version: 1
+services:
+  - id: opnsense-webgui
+    status: confirmed
+    host: router
+    role: Router/firewall administration
+    listen:
+      - {address: 10.0.10.1, protocol: HTTPS, port: 443}
+    urls:
+      - https://router.home.rvsteele.com
+      - https://10.0.10.1
+    reverse_proxy: caddy
+    proxy_backend:
+      url: https://10.0.10.1
+      tls_verification: skipped-self-signed
+      http_version_workaround: HTTP/1.1-tested
+      status: needs_verification
+    quirks:
+      - Historical 400 Bad Request on refresh; final workaround state is unknown.
+
+  - id: proxmox-webgui
+    status: confirmed
+    host: pve
+    role: Hypervisor administration
+    listen:
+      - {address: 10.0.10.2, protocol: HTTPS, port: 8006}
+    urls:
+      - https://pve.home.rvsteele.com
+      - https://10.0.10.2:8006
+    reverse_proxy: caddy
+    proxy_backend:
+      url: https://10.0.10.2:8006
+      tls_verification: skipped-self-signed
+
+  - id: eap-webui
+    status: confirmed
+    host: eap650
+    role: Access-point administration
+    listen:
+      - {address: 10.0.10.111, protocol: HTTPS, port: 443}
+    urls:
+      - https://ap.home.rvsteele.com
+      - https://10.0.10.111
+    reverse_proxy: caddy
+    proxy_backend:
+      url: https://10.0.10.111
+      tls_verification: skipped-self-signed
+      host_header: 10.0.10.111
+      proposed_header_removals: [X-Forwarded-Host, X-Forwarded-Proto, X-Forwarded-For]
+      status: needs_verification
+    quirks:
+      - Proxied login succeeds but the UI was blank after login; direct-IP access works.
+
+  - id: caddy
+    status: confirmed
+    host: caddy
+    role: Internal reverse proxy and public-certificate termination
+    package_source: official Debian package
+    config_paths:
+      - /etc/caddy/Caddyfile
+      - /etc/caddy/cloudflare_token
+    modules:
+      - dns.providers.cloudflare
+    module_install_command: caddy add-package github.com/caddy-dns/cloudflare
+    certificate_method: Cloudflare DNS-01
+    certificate_scope: Internal hostnames under home.rvsteele.com
+    public_ingress_required: false
+    cloudflare_resolver: 1.1.1.1
+    secret_file:
+      path: /etc/caddy/cloudflare_token
+      owner: root
+      group: caddy
+      mode: "0640"
+      value_committed: false
+    token_scope:
+      - "Zone / DNS / Edit on rvsteele.com"
+      - "Zone / Zone / Read on rvsteele.com"
+    exact_config_status: needs_verification
+
+  - id: jellyfin
+    status: confirmed
+    host: jellyfin
+    role: Media playback server
+    listen:
+      - {address: 10.0.40.10, protocol: HTTP, port: 8096}
+    url: https://jellyfin.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.40.10:8096
+    service_identity: {user: jellyfin, uid: 102, observed_primary_gid: 105, writable_media_group_member: false}
+    media_paths:
+      movies: /media/movies
+      tv: /media/tv
+    remote_connections_enabled: true
+    upnp_enabled: false
+    direct_wan_exposure: false
+    clients:
+      - lg-c3
+    evidence:
+      - Import and display of The Last First - Winter K2 (2026) verified the Radarr-to-library path.
+
+  - id: qbittorrent
+    status: confirmed
+    host: qbittorrent
+    role: BitTorrent download client
+    implementation: qBittorrent-nox
+    listen:
+      - {address: 10.0.40.11, protocol: HTTP, port: 8080, purpose: WebUI}
+    url: https://qbittorrent.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.40.11:8080
+    systemd_unit: qbittorrent.service
+    service_identity: {user: qbittorrent, uid: 102, group: qbittorrent, observed_primary_gid: 105, umask: "0002", supplementary_group: "media:5000"}
+    network_binding: proton
+    torrent_management:
+      mode: Automatic
+      category_change_action: Relocate torrent
+      default_save_path_change_action: Relocate affected torrents
+      category_save_path_change_action: Relocate affected torrents
+      categories:
+        movies: /media/downloads/movies
+        tv: /media/downloads/tv
+      incomplete_root: /media/downloads/incomplete
+    depends_on:
+      - proton-wireguard
+      - opnsense-dns
+      - media-storage
+    direct_wan_exposure: false
+
+  - id: proton-wireguard
+    status: confirmed
+    host: qbittorrent
+    role: Full-tunnel VPN and qBittorrent transport
+    interface: proton
+    systemd_unit: wg-quick@proton.service
+    config_path: /etc/wireguard/proton.conf
+    allowed_ips: [0.0.0.0/0, "::/0"]
+    endpoint:
+      value: "146.70.195.82:51820"
+      status: needs_verification
+      note: Observed endpoint; may change with provider configuration.
+    observed_addresses:
+      - 10.2.0.2/32
+      - "2a07:b944::2:2/128"
+    persistent_keepalive_seconds: 25
+    observed_health:
+      status: historical
+      handshake_age: approximately 1-2 minutes
+      received_gib: 85.03
+      sent_gib: 28.95
+    kill_switch_layers:
+      - qBittorrent is bound to interface proton.
+      - OPNsense permits CT 102 only DNS and UDP 51820 to PROTON_ENDPOINT, then blocks all other egress.
+      - qBittorrent depends on the WireGuard systemd unit.
+    boot_issue: wg-quick can run before DHCP makes 10.0.40.1 a valid next hop; its PostUp route then fails fatally.
+
+  - id: sonarr
+    status: confirmed
+    host: sonarr
+    role: TV acquisition and library management
+    listen:
+      - {address: 10.0.40.12, protocol: HTTP, port: 8989}
+    url: https://sonarr.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.40.12:8989
+    service_identity: {user: sonarr, uid: 102, group: media, gid: 5000, umask: "0002"}
+    root_folder: /media/tv
+    media_management:
+      rename_episodes: true
+      use_hardlinks_instead_of_copy: true
+    authentication: Forms/Login required
+    allowed_hosts: blank
+    url_base: blank
+    download_client:
+      endpoint: http://10.0.40.11:8080
+      ssl: false
+      category: tv
+      routing: direct-same-vlan
+    indexer_manager:
+      endpoint: http://10.0.40.14:9696
+      sync: Full Sync
+    quality_profile: needs_verification
+    proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
+    filesystem_evidence: Write test under /media/tv created mode 664 uid 102 gid 5000; hardlink test succeeded.
+
+  - id: radarr
+    status: confirmed
+    host: radarr
+    role: Movie acquisition and library management
+    listen:
+      - {address: 10.0.40.13, protocol: HTTP, port: 7878}
+    url: https://radarr.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.40.13:7878
+    service_identity: {user: radarr, uid: 102, group: media, gid: 5000, umask: "0002"}
+    root_folder: /media/movies
+    media_management:
+      rename_movies: true
+      use_hardlinks_instead_of_copy: true
+    authentication: Forms/Login required
+    allowed_hosts: blank
+    url_base: blank
+    download_client:
+      endpoint: http://10.0.40.11:8080
+      ssl: false
+      category: movies
+      routing: direct-same-vlan
+    indexer_manager:
+      endpoint: http://10.0.40.14:9696
+      sync: Full Sync
+    quality_profile: needs_verification
+    proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
+    filesystem_evidence: Write and hardlink tests under /media/movies succeeded with the shared media group.
+
+  - id: prowlarr
+    status: confirmed
+    host: prowlarr
+    role: Indexer aggregation and Arr synchronization
+    listen:
+      - {address: 10.0.40.14, protocol: HTTP, port: 9696}
+    url: https://prowlarr.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.40.14:9696
+    authentication: Forms/Login required
+    apps:
+      - {service: sonarr, endpoint: "http://10.0.40.12:8989", sync: Full Sync}
+      - {service: radarr, endpoint: "http://10.0.40.13:7878", sync: Full Sync}
+    indexers:
+      - {name: 1337x, status: confirmed, flaresolverr_tag: flaresolverr}
+      - {name: LimeTorrents, status: confirmed, note: Synced to Sonarr; apparent Radarr category incompatibility}
+      - {name: YTS, status: confirmed, note: Works for Radarr}
+    privacy_note: Indexer browsing uses the normal home WAN address; actual torrent peer/tracker/DHT traffic is qBittorrent over Proton.
+    proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
+
+  - id: flaresolverr
+    status: confirmed
+    host: prowlarr
+    role: Local Cloudflare challenge solver for Prowlarr
+    version: 3.5.2
+    install_path: /opt/flaresolverr
+    systemd_unit: /etc/systemd/system/flaresolverr.service
+    listen:
+      - {address: 127.0.0.1, protocol: HTTP, port: 8191}
+    service_identity: {user: flaresolverr, uid: 999, group: flaresolverr, gid: 988}
+    settings: {HOST: 127.0.0.1, PORT: 8191, LOG_LEVEL: info, restart: on-failure}
+    containerization: native-not-Docker
+    consumers:
+      - {service: prowlarr, url: "http://127.0.0.1:8191", tag: flaresolverr}
+
+  - id: terraria
+    status: confirmed
+    host: games
+    role: Public Terraria game server
+    version: 1.4.5.8
+    listen:
+      - {address: 10.0.50.10, protocol: TCP, port: 7777}
+    internal_name: terraria.home.rvsteele.com
+    public_endpoint: terraria.rvsteele.com:7777
+    systemd_unit: /etc/systemd/system/terraria.service
+    wrapper: /usr/local/sbin/terraria-wrapper
+    service_identity: {user: terraria, group: terraria}
+    install:
+      current_symlink: /opt/terraria/current
+      current_target: /opt/terraria/bin/1458
+      retained_old_version: /opt/terraria/bin/1449
+    world:
+      name: The Backdoor
+      path: /opt/terraria/Worlds/The_Backdoor.wld
+      backups:
+        - /opt/terraria/Worlds/The_Backdoor.wld.bak
+        - /opt/terraria/Worlds/The_Backdoor.wld.bak2
+        - /opt/terraria/Worlds/The_Backdoor.pre-migration.wld
+    config:
+      path: /opt/terraria/serverconfig.txt
+      max_players: 16
+      secure: 1
+      log_path: /opt/terraria/logs
+      motd: configured-value-excluded
+      server_secret: exists-value-excluded
+    systemd:
+      enabled: true
+      type: simple
+      runtime_directory: terraria
+      runtime_directory_mode: "0750"
+      working_directory: /opt/terraria/current/Linux
+      exec_start: /usr/local/sbin/terraria-wrapper
+      restart: on-failure
+      restart_seconds: 5
+      kill_mode: mixed
+      timeout_stop_seconds: 90
+      read_write_paths: [/opt/terraria, /run/terraria]
+    console_fifo: /run/terraria/console
+    clean_shutdown: Wrapper sends exit on SIGTERM; verified to save and exit successfully.
+    compatibility_note: World format header/version 318 crashes server 1.4.4.9; use 1.4.5.8.
+
+  - id: dvd-inspection
+    status: confirmed
+    host: dvdstream
+    role: Low-level DVD access and stream testing
+    devices: [/dev/sr0, /dev/sg1]
+    packages:
+      - ffmpeg
+      - lsdvd
+      - libdvdnav4
+      - libdvdread8t64
+      - libdvd-pkg
+      - libdvdcss
+    capabilities:
+      dvdvideo_demuxer: confirmed
+      css_decryption: confirmed
+      decoded_frames_test: "252 frames / 9.97 seconds"
+      mpeg2_ac3_stream_copy: "approximately 1.13x after warmup in one 60-second run"
+      hls_mpegts_packaging: confirmed
+      h264_ultrafast_2_core: "approximately 0.70-0.76x"
+    blocker: Physical ata4/slimline-SATA link instability
+    test_disc:
+      label: REMINGTON_STEELE_S1_D2A
+      disc_id: 80a728ce87848feaca37599519bb9398
+      titles:
+        - {number: 1, duration: "00:49:06", chapters: 13}
+        - {number: 2, duration: "00:49:07.500", chapters: 13}
+        - {number: 3, duration: "00:49:10.533", chapters: 13}
+        - {number: 4, duration: "00:49:13.500", chapters: 13, longest: true}
+        - {numbers: "5-8", duration: seconds-only, likely_role: menus-transitions-extras}
+    region_observation:
+      status: historical
+      value: "RPC Phase I software; no region set; zero vendor resets and user changes"
+      instruction: Do not blindly alter the region.
+
+  - id: dvd-watch-now
+    status: planned
+    host: dvdstream
+    role: Browser title selection and live HLS playback
+    future_url: https://dvd.home.rvsteele.com
+    future_backend: "10.0.40.15:<unassigned-port>"
+    desired_pipeline:
+      - Physical DVD
+      - FFmpeg dvdvideo input
+      - Prefer MPEG-2/AC3 remux into HLS if LG C3 browser supports it
+      - Local web application
+      - Caddy
+      - LG C3 browser
+    ui_features:
+      - Disc label
+      - Main-title durations
+      - Per-title Watch action
+      - Optional eject action
+    prerequisites:
+      - Repair and retest optical SATA link
+      - Test LG C3 direct MPEG-2/AC3 HLS compatibility
+      - Select application port and implementation
+      - Add Unbound override and Caddy backend
+
+  - id: zenarmor
+    status: needs_verification
+    host: router
+    role: Per-device network visibility and policy
+    edition: Free Edition selected
+    desired_configuration:
+      deployment_size: up to 25 devices
+      data_store: local SQLite
+      mode: Routed Mode / L3
+      operation: Reporting + Blocking
+      netmap: emulated
+      monitored_interface: parent vtnet1 trunk
+      security_zone: lan
+      inspect_wan_separately: false
+    constraints:
+      - Avoid monitoring both parent trunk and every child VLAN.
+      - Free edition has policy limits; Zenarmor Home was discussed.
+
+obsolete_services:
+  - id: ntopng
+    status: historical
+    host: router
+    packages: [os-ntopng, os-redis]
+    disposition: Tested, then replaced/removed in favor of Zenarmor.
+    cleanup: Remove stale ntop.home.rvsteele.com DNS/Caddy entries if present.
+
+quality_profile_intent:
+  status: proposed
+  applies_to: [sonarr, radarr]
+  baseline: Primarily 1080p due to 1 TB media storage
+  preferred: [WEB-1080p, WEB-DL, Bluray-1080p]
+  upgrade_cutoff: Bluray-1080p
+  four_k: Separate profile later for selected content
+  saved_configuration: needs_verification
+

@@ -1,0 +1,35 @@
+schema_version: 1
+checks:
+  - {id: pve-network-config, priority: high, status: needs_verification, target: pve, evidence: Sanitized /etc/network/interfaces and ip -br address/route output}
+  - {id: opnsense-firewall-export, priority: high, status: needs_verification, target: router, evidence: Sanitized ordered rules, aliases, floating rules, and generated NAT associations}
+  - {id: opnsense-nat-export, priority: high, status: needs_verification, target: router, evidence: Port-forward and outbound-NAT export including rule order}
+  - {id: opnsense-dns-overrides, priority: high, status: needs_verification, target: router, evidence: Current Unbound host overrides}
+  - {id: opnsense-dhcp-reservations, priority: high, status: needs_verification, target: router, evidence: Current Dnsmasq ranges and reservations}
+  - {id: temporary-lan, priority: medium, status: needs_verification, target: router, evidence: Confirm whether 192.168.1.0/24 LAN remains}
+  - {id: temporary-wan-webgui, priority: high, status: needs_verification, target: router, evidence: Confirm no WAN GUI pass rule}
+  - {id: wan-private-bogon, priority: medium, status: needs_verification, target: router, evidence: WAN Block private networks and bogons settings}
+  - {id: ap-source-nat, priority: medium, status: needs_verification, target: router, evidence: Confirm temporary AP management source NAT is removed}
+  - {id: ntop-cleanup, priority: low, status: needs_verification, target: router, evidence: Confirm packages and ntop DNS/Caddy entry removed}
+  - {id: zenarmor-state, priority: medium, status: needs_verification, target: router, evidence: Package, engine status, monitored interfaces, mode, datastore, and policy}
+  - {id: opnsense-vcpu, priority: low, status: needs_verification, target: router, evidence: qm config 100}
+  - {id: opnsense-version, priority: medium, status: needs_verification, target: router, evidence: Exact installed version and patch level}
+  - {id: proxmox-version, priority: medium, status: needs_verification, target: pve, evidence: pveversion -v}
+  - {id: caddyfile, priority: high, status: needs_verification, target: caddy, evidence: Sanitized exact Caddyfile and caddy validate output}
+  - {id: router-proxy-refresh, priority: medium, status: needs_verification, target: caddy, evidence: Refresh/deep-link test plus relevant Caddy log}
+  - {id: ap-proxy-ui, priority: medium, status: needs_verification, target: caddy, evidence: Post-login UI test and browser developer-tools failures}
+  - {id: qbittorrent-leak-test, priority: critical, status: needs_verification, target: qbittorrent, evidence: Deliberate VPN failure test proves no tracker/peer/general egress}
+  - {id: qbittorrent-boot-order, priority: high, status: needs_verification, target: qbittorrent, evidence: Persistent network-online fix and repeated cold/reboot success}
+  - {id: proton-endpoint, priority: high, status: needs_verification, target: qbittorrent, evidence: Compare wg config/endpoint with OPNsense PROTON_ENDPOINT alias}
+  - {id: cox-public-ip, priority: low, status: needs_verification, target: router, evidence: Current WAN lease; record only in dated snapshot}
+  - {id: media-uuid-smart, priority: high, status: needs_verification, target: pve, evidence: lsblk -f, findmnt, and smartctl report}
+  - {id: backup-strategy, priority: critical, status: needs_verification, target: site, evidence: Jobs, destinations, retention, offsite copy, and last restore test}
+  - {id: ups-power, priority: high, status: needs_verification, target: site, evidence: UPS hardware, shutdown integration, and power-loss behavior}
+  - {id: ssh-audit, priority: high, status: needs_verification, target: all-hosts, evidence: Users, authorized keys, password/root policy, and exposed listeners}
+  - {id: arr-quality-profiles, priority: low, status: needs_verification, target: [sonarr, radarr], evidence: Export/screenshot of saved profiles and cutoffs}
+  - {id: marama-folder, priority: low, status: needs_verification, target: pve, evidence: Confirm mistaken empty directory absent}
+  - {id: dvdstream-nesting, priority: low, status: needs_verification, target: dvdstream, evidence: Determine if any required service actually needs nesting}
+  - {id: optical-repair, priority: high, status: needs_verification, target: pve, evidence: Two-minute stream-copy test and no new ata4/BadCRC errors}
+  - {id: lg-hls-compatibility, priority: medium, status: needs_verification, target: lg-c3, evidence: Browser plays direct MPEG-2/AC3 HLS reliably}
+  - {id: dvdstream-app-port, priority: medium, status: needs_verification, target: dvdstream, evidence: Implemented listener and systemd unit}
+  - {id: dvd-dns-proxy, priority: medium, status: needs_verification, target: [router, caddy], evidence: Only after app exists, verify Unbound and Caddy configuration}
+

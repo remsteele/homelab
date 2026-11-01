@@ -1,0 +1,94 @@
+schema_version: 1
+connections:
+  - id: internet-physical
+    status: confirmed
+    kind: physical-path
+    path: [Internet, cox-gateway, pve/enp3s0f0, vmbr0, router/vtnet0]
+  - id: lan-trunk-physical
+    status: confirmed
+    kind: physical-path
+    path: [router/vtnet1, vmbr1, pve/enp3s0f1, eap650]
+    carries_vlans: [10, 20, 30, 40, 50]
+
+  - id: internal-dns
+    status: confirmed
+    kind: infrastructure
+    from: all-vlans
+    to: router
+    protocol: TCP/UDP
+    port: 53
+    service: Unbound
+  - id: dhcp
+    status: confirmed
+    kind: infrastructure
+    from: vlan-clients
+    to: router
+    service: Dnsmasq
+
+  - id: internal-https
+    status: confirmed
+    kind: request-flow
+    path: [client, Unbound-host-override, "caddy:443", backend-service]
+    certificate: Cloudflare DNS-01
+  - {id: caddy-jellyfin, status: confirmed, kind: reverse-proxy, from: caddy, to: jellyfin, protocol: HTTP, port: 8096}
+  - {id: caddy-qbittorrent, status: confirmed, kind: reverse-proxy, from: caddy, to: qbittorrent, protocol: HTTP, port: 8080}
+  - {id: caddy-sonarr, status: confirmed, kind: reverse-proxy, from: caddy, to: sonarr, protocol: HTTP, port: 8989}
+  - {id: caddy-radarr, status: confirmed, kind: reverse-proxy, from: caddy, to: radarr, protocol: HTTP, port: 7878}
+  - {id: caddy-prowlarr, status: confirmed, kind: reverse-proxy, from: caddy, to: prowlarr, protocol: HTTP, port: 9696}
+  - {id: caddy-pve, status: confirmed, kind: reverse-proxy, from: caddy, to: pve, protocol: HTTPS, port: 8006, tls_verify: false}
+  - {id: caddy-router, status: needs_verification, kind: reverse-proxy, from: caddy, to: router, protocol: HTTPS, port: 443, tls_verify: false}
+  - {id: caddy-eap650, status: needs_verification, kind: reverse-proxy, from: caddy, to: eap650, protocol: HTTPS, port: 443, tls_verify: false}
+  - {id: caddy-dvdstream, status: planned, kind: reverse-proxy, from: caddy, to: dvdstream, protocol: HTTP, port: unassigned}
+
+  - {id: sonarr-qbittorrent, status: confirmed, kind: application-api, from: sonarr, to: qbittorrent, protocol: HTTP, port: 8080, category: tv}
+  - {id: radarr-qbittorrent, status: confirmed, kind: application-api, from: radarr, to: qbittorrent, protocol: HTTP, port: 8080, category: movies}
+  - {id: prowlarr-sonarr, status: confirmed, kind: application-api, from: prowlarr, to: sonarr, protocol: HTTP, port: 8989, sync: Full Sync}
+  - {id: prowlarr-radarr, status: confirmed, kind: application-api, from: prowlarr, to: radarr, protocol: HTTP, port: 7878, sync: Full Sync}
+  - {id: prowlarr-flaresolverr, status: confirmed, kind: loopback-api, from: prowlarr, to: flaresolverr, protocol: HTTP, address: 127.0.0.1, port: 8191}
+
+  - id: qbittorrent-proton
+    status: confirmed
+    kind: vpn
+    from: qbittorrent
+    to: PROTON_ENDPOINT
+    protocol: UDP
+    port: 51820
+    tunnel_interface: proton
+    routed_prefixes: [0.0.0.0/0, "::/0"]
+  - id: qbittorrent-home-return
+    status: confirmed
+    kind: route
+    from: qbittorrent
+    destination: 10.0.10.0/24
+    via: 10.0.40.1
+    interface: eth0
+
+  - id: media-dataflow-movies
+    status: confirmed
+    kind: dataflow
+    path:
+      - qBittorrent writes /media/downloads/movies
+      - Radarr hardlinks/imports into /media/movies
+      - Jellyfin reads /media/movies
+  - id: media-dataflow-tv
+    status: confirmed
+    kind: dataflow
+    path:
+      - qBittorrent writes /media/downloads/tv
+      - Sonarr hardlinks/imports into /media/tv
+      - Jellyfin reads /media/tv
+
+  - id: terraria-public
+    status: confirmed
+    kind: public-ingress
+    path: [terraria.rvsteele.com, "OPNsense WAN TCP 7777 NAT", "games:7777"]
+  - id: terraria-ddns
+    status: confirmed
+    kind: control-plane
+    path: [OPNsense os-ddclient, Cloudflare API, terraria.rvsteele.com A record]
+
+  - id: dvd-streaming
+    status: planned
+    kind: media-flow
+    path: [/dev/sr0, dvdstream, FFmpeg, HLS-web-app, caddy, lg-c3]
+

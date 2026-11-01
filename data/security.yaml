@@ -1,0 +1,97 @@
+schema_version: 1
+principles:
+  - id: no-secrets-in-repository
+    status: confirmed
+    rule: Never commit credentials, private keys, recovery codes, or session material.
+  - id: least-privilege
+    status: confirmed
+    examples:
+      - Jellyfin is not in the writable media group.
+      - FlareSolverr binds only to loopback.
+      - dvdstream has no media-disk mount.
+      - WAN management interfaces are not intentionally exposed.
+  - id: management-agent-safety
+    status: planned
+    rule: Broad read visibility, exact proposed diffs, explicit approval before privileged writes, verification after changes, and an audit record.
+
+secret_locations:
+  - id: caddy-cloudflare-token
+    status: confirmed
+    host: caddy
+    path: /etc/caddy/cloudflare_token
+    purpose: Cloudflare DNS-01 certificate challenges
+    expected_owner: root:caddy
+    expected_mode: "0640"
+    required_scope:
+      - "Zone / DNS / Edit on rvsteele.com"
+      - "Zone / Zone / Read on rvsteele.com"
+    value_policy: excluded
+  - id: opnsense-ddns-cloudflare-token
+    status: confirmed
+    host: router
+    location: OPNsense os-ddclient credential store
+    purpose: Update terraria.rvsteele.com A record
+    required_scope:
+      - "Zone / DNS / Edit on rvsteele.com"
+    value_policy: excluded
+  - id: proton-wireguard-private-key
+    status: confirmed
+    host: qbittorrent
+    path: /etc/wireguard/proton.conf
+    purpose: ProtonVPN tunnel authentication
+    value_policy: excluded
+  - id: homelab-ssh-private-key
+    status: confirmed
+    host: user-mac
+    path: ~/.ssh/homelab_ed25519
+    public_key_path: ~/.ssh/homelab_ed25519.pub
+    key_type: Ed25519
+    comment: homelab
+    storage: macOS Keychain
+    value_policy: Must remain on the Mac and outside this repository.
+  - id: terraria-server-secret
+    status: confirmed
+    host: games
+    path: /opt/terraria/serverconfig.txt
+    purpose: Terraria client access
+    value_policy: excluded
+
+ssh_policy:
+  status: confirmed
+  preferred_authentication: Ed25519 public key
+  emergency_fallback: Password authentication retained
+  password_policy: Unique randomized 18+ character value per host, stored only in a password manager
+  root_login: Disable where practical
+  admin_user: remington where practical
+  sudo: Password required by default; no blanket NOPASSWD
+  confirmed_hosts:
+    - host: games
+      user: remington
+      key_auth: confirmed
+  audit_remaining: needs_verification
+
+service_exposure:
+  public:
+    - {service: terraria, protocol: TCP, port: 7777, protection: DMZ isolation}
+  internal_only:
+    - opnsense-webgui
+    - proxmox-webgui
+    - eap-webui
+    - jellyfin
+    - qbittorrent
+    - sonarr
+    - radarr
+    - prowlarr
+    - flaresolverr
+    - dvd-watch-now
+
+vpn_safety:
+  status: confirmed
+  service: qbittorrent
+  layers:
+    - qBittorrent network-interface binding to proton
+    - systemd dependency on wg-quick@proton
+    - OPNsense host-specific endpoint allow and default block
+  deliberate_failure_test: needs_verification
+  constraint: Do not weaken the kill switch to solve boot ordering.
+
