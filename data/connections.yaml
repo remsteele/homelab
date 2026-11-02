@@ -68,7 +68,8 @@ connections:
   - {id: caddy-eap650, status: needs_verification, kind: reverse-proxy, from: caddy, to: eap650, protocol: HTTPS, port: 443, tls_verify: false}
   - {id: caddy-dvdstream, status: planned, kind: reverse-proxy, from: caddy, to: dvdstream, protocol: HTTP, port: unassigned}
 
-  - {id: macbook-lg-tv-ssh, status: needs_verification, kind: management, from: user-mac, to: lg-c3, protocol: SSH, port: 22, note: Client alias exists; TV does not yet accept the homelab public key.}
+  - {id: macbook-private-admin, status: confirmed, kind: firewall-policy, from: user-mac, source_address: 10.0.10.194, to: LOCAL_NETS, protocol: any, note: Reserved administrator workstation; exact HOME exception precedes the private-network block.}
+  - {id: macbook-lg-tv-ssh, status: confirmed, kind: management, from: user-mac, to: lg-c3, protocol: SSH, port: 22, note: Network path verified on 2026-11-02; TV still does not accept the homelab public key.}
 
   - {id: sonarr-qbittorrent, status: confirmed, kind: application-api, from: sonarr, to: qbittorrent, protocol: HTTP, port: 8080, category: tv}
   - {id: radarr-qbittorrent, status: confirmed, kind: application-api, from: radarr, to: qbittorrent, protocol: HTTP, port: 8080, category: movies}
@@ -129,6 +130,7 @@ connections:
     status: confirmed
     kind: public-ingress
     path: [terraria.rvsteele.com, "OPNsense WAN TCP 7777 NAT", "games:7777"]
+  - {id: terraria-home, status: confirmed, kind: internal-client, from: HOME, to: games, protocol: TCP, port: 7777, note: Exact HOME exception precedes the private-network block.}
   - id: terraria-ddns
     status: confirmed
     kind: control-plane

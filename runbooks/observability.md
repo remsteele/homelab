@@ -46,10 +46,10 @@ homepage.home.rvsteele.com  A  10.0.10.3
 uptime.home.rvsteele.com    A  10.0.10.3
 ```
 
-No OPNsense firewall change is required while the containers stay on HOME:
-HOME already has broad outbound access, and same-HOME traffic is switched
-without crossing OPNsense. AdGuard also has both Caddy rewrites pointing to
-`10.0.10.3`.
+Homepage's same-HOME paths are switched without crossing OPNsense. Uptime Kuma
+has exact OPNsense HOME rules for router TCP 443, each monitored SERVERS port,
+and Terraria TCP 7777. Do not replace those with a broad cross-VLAN exception.
+AdGuard also has both Caddy rewrites pointing to `10.0.10.3`.
 
 Verify the two resolver paths separately:
 
@@ -79,6 +79,10 @@ curl -fsS http://10.0.10.5:3000/api/healthcheck
 
 After editing configuration, run `docker compose config --quiet`, then
 `docker compose up -d`. Preserve the `.env` ownership and mode.
+
+The Infrastructure group includes the rooted LG TV link at
+`https://tv.home.rvsteele.com`. Its six services use a six-column desktop row;
+the TV tile uses the `mdi-television` icon.
 
 ## Uptime Kuma operations
 

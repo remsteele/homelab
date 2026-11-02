@@ -10,6 +10,8 @@ checks:
   - {id: uptime-kuma-service, priority: high, status: confirmed, target: uptime-kuma, evidence: Pinned 2.5.8 container and local SQLite data returned after CT 111 reboot; all ten configured monitors reported UP on 2026-11-01}
   - {id: uptime-kuma-https, priority: high, status: confirmed, target: caddy, evidence: HTTPS returned the login redirect through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
   - {id: observability-opnsense-dns, priority: high, status: confirmed, target: router, evidence: Authenticated API confirmed Homepage and Uptime Kuma Dnsmasq host identities and Unbound Caddy overrides on 2026-11-02}
+  - {id: homepage-tv-link, priority: medium, status: confirmed, target: homepage, evidence: Rooted LG TV tile added to Infrastructure; six-column layout, healthy container, and direct healthcheck verified on 2026-11-02}
+  - {id: home-firewall-hardening, priority: high, status: confirmed, target: router, evidence: Exact HOME rules applied through the authenticated API on 2026-11-02; API, DNS, Internet, MacBook TV web and SSH, Caddy backends, Uptime Kuma targets, and Terraria passed; Homepage-to-TV and Homepage-to-Jellyfin tests timed out at the private-network block}
   - {id: pve-network-config, priority: high, status: confirmed, target: pve, evidence: Read-only SSH capture of interfaces, addresses, routes, and bridge VLANs on 2026-11-01}
   - {id: opnsense-firewall-export, priority: high, status: needs_verification, target: router, evidence: Sanitized ordered rules, aliases, floating rules, and generated NAT associations}
   - {id: opnsense-nat-export, priority: high, status: needs_verification, target: router, evidence: Port-forward and outbound-NAT export including rule order}

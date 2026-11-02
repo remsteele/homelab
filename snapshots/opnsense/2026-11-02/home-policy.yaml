@@ -1,0 +1,55 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: Authenticated native OPNsense API over pinned TLS
+  mutation_performed: true
+  interface: HOME
+  interface_id: opt1
+  firmware: 26.7.5
+
+change:
+  summary: Replaced the broad HOME pass with explicit management, proxy, monitoring, game, private-block, and Internet rules.
+  api_operations: [add_rule, move_rule_before, toggle_rule, apply]
+  old_rule_deleted: false
+  rollback_rule:
+    uuid: b1b840fd-6cd3-437a-a411-aba4937a8dc0
+    description: TEMP - HOME allow all
+    enabled: false
+    sequence: 407
+    rollback: Enable this rule and apply the firewall configuration.
+
+ordered_rules:
+  - {sequence: 111, uuid: a7ac713b-4b9d-4d9b-b86b-8c742a420014, enabled: true, action: pass, protocol: TCP/UDP, source: HOME-net, destination: This-Firewall, port: domain, description: HOME - DNS to OPNsense}
+  - {sequence: 161, uuid: b80af116-f4c8-453f-b346-fd4da3b8fad0, enabled: true, action: pass, protocol: any, source: 10.0.10.194, destination: LOCAL_NETS, description: HOME - MacBook admin to private networks}
+  - {sequence: 186, uuid: e420fe19-2a13-49e6-a782-bc1c4c3d7350, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: This-Firewall, port: 443, description: HOME - Caddy to OPNsense WebGUI}
+  - {sequence: 198, uuid: 490cce10-2c7b-4203-a018-83127ba0b242, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: This-Firewall, port: 443, description: HOME - Uptime Kuma to OPNsense WebGUI}
+  - {sequence: 204, uuid: 2144c39f-4529-483a-8509-e9848a93e463, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.20.134, port: 8080, description: HOME - Caddy to rooted TV}
+  - {sequence: 207, uuid: 08c591b7-8042-4d93-88b1-ffa7562e0af1, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.10, port: 8096, description: HOME - Caddy to Jellyfin}
+  - {sequence: 209, uuid: 662157c6-1463-4e00-8af2-ff688f3796e1, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.11, port: 8080, description: HOME - Caddy to qBittorrent}
+  - {sequence: 259, uuid: 659400dd-e880-4f99-abd0-082a547772dd, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.12, port: 8989, description: HOME - Caddy to Sonarr}
+  - {sequence: 284, uuid: 89030417-4532-4d32-92d0-1900e687f238, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.13, port: 7878, description: HOME - Caddy to Radarr}
+  - {sequence: 296, uuid: bae471c7-67a4-44c0-bd25-d8d4af0b0e50, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.14, port: 9696, description: HOME - Caddy to Prowlarr}
+  - {sequence: 302, uuid: c8d24bb3-67b4-41f1-974e-f34d91e49918, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.10, port: 8096, description: HOME - Uptime Kuma to Jellyfin}
+  - {sequence: 305, uuid: 19a0a438-1795-42f6-a99f-2d74ad611ed6, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.11, port: 8080, description: HOME - Uptime Kuma to qBittorrent}
+  - {sequence: 307, uuid: d64dc173-0bdf-4c98-922f-9b92285973bf, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.12, port: 8989, description: HOME - Uptime Kuma to Sonarr}
+  - {sequence: 357, uuid: eb39b05c-1c3a-48c9-b358-ccc0a197ac89, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.13, port: 7878, description: HOME - Uptime Kuma to Radarr}
+  - {sequence: 382, uuid: e38f0adb-3551-4fc5-abf3-74245638874e, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.14, port: 9696, description: HOME - Uptime Kuma to Prowlarr}
+  - {sequence: 394, uuid: a404d4d8-31dd-4ab5-971d-bec8a88328e1, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.50.10, port: 7777, description: HOME - Uptime Kuma to Terraria}
+  - {sequence: 400, uuid: 32ffd834-7bbf-41e9-815b-254fd90ed575, enabled: true, action: pass, protocol: TCP, source: HOME-net, destination: 10.0.50.10, port: 7777, description: HOME - Clients to Terraria}
+  - {sequence: 403, uuid: 320b1c1d-ff18-440f-b101-216cb3ce46d9, enabled: true, action: block, protocol: any, source: HOME-net, destination: LOCAL_NETS, description: HOME - Block initiation to private networks}
+  - {sequence: 405, uuid: 03673e4b-034d-445f-91ac-3d25f59cde57, enabled: true, action: pass, protocol: any, source: HOME-net, destination: any, description: HOME - Allow Internet}
+  - {sequence: 407, uuid: b1b840fd-6cd3-437a-a411-aba4937a8dc0, enabled: false, action: pass, protocol: any, source: HOME-net, destination: any, description: TEMP - HOME allow all}
+
+verification:
+  opnsense_api_from_macbook: passed
+  opnsense_dns_from_home: passed
+  public_internet_from_home: passed
+  macbook_to_tv_http_8080: passed
+  macbook_to_tv_ssh_22: passed
+  caddy_to_all_documented_cross_vlan_backends: passed
+  uptime_kuma_to_all_cross_vlan_targets: passed
+  home_to_terraria_7777: passed
+  caddy_https_tv: passed
+  homepage_to_tv_8080: blocked-as-designed
+  homepage_to_jellyfin_8096: blocked-as-designed
+  state_table_confirmed_new_rule_labels: true

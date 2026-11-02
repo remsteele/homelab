@@ -60,9 +60,10 @@ source-of-truth files and sanitized snapshot are updated.
 - [ ] Determine whether anything still uses the untagged `192.168.1.0/24` LAN.
   If not, remove its DHCP, IPv6 router advertisements, addresses, and broad
   default LAN rules through a planned migration.
-- [ ] Replace `TEMP - HOME allow all` with explicit HOME management and client
-  policy. Inventory required flows before tightening to avoid locking out
-  OPNsense, Proxmox, Caddy, DNS, or service administration.
+- [x] Replaced `TEMP - HOME allow all` on 2026-11-02 with exact DNS,
+  MacBook administration, Caddy backend, Uptime Kuma, and Terraria rules,
+  followed by a private-network block and Internet pass. The old rule remains
+  disabled at the bottom as a temporary rollback path.
 - [ ] Decide whether to enable and configure the Proxmox firewall. It is
   currently disabled, so guest `firewall=1` flags do not enforce an independent
   same-VLAN policy.

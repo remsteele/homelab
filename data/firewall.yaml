@@ -4,7 +4,7 @@ semantics:
   stateful: true
   ingress_evaluation: Rules are evaluated on the interface where traffic enters OPNsense.
   same_vlan_note: Traffic between services on VLAN 40 is switched locally and does not traverse inter-VLAN rules.
-  current_order_warning: Exact live rule order and automatically generated rules need a sanitized export.
+  current_order_warning: HOME modern-rule order was captured on 2026-11-02; automatically generated and legacy rules still need a full sanitized export.
 
 proxmox_firewall:
   status: confirmed
@@ -34,17 +34,30 @@ interface_policies:
   - interface: HOME
     vlan: home
     policy_status: confirmed
-    posture: trusted-broad-access
+    verified_as_of: "2026-11-02"
+    posture: deny-private-by-default-with-explicit-exceptions
     rules:
-      - order: 10
-        action: pass
-        family: IPv4
-        protocol: any
-        source: HOME net
-        destination: any
-        description: TEMP - HOME allow all
-        status: confirmed
-        hardening: Tighten eventually.
+      - {order: 10, action: pass, family: IPv4, protocol: TCP/UDP, source: HOME net, destination: This Firewall, destination_port: 53, description: HOME - DNS to OPNsense}
+      - {order: 20, action: pass, family: IPv4, protocol: any, source: 10.0.10.194, destination: LOCAL_NETS, description: HOME - MacBook admin to private networks}
+      - {order: 30, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: This Firewall, destination_port: 443, description: HOME - Caddy to OPNsense WebGUI}
+      - {order: 40, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: This Firewall, destination_port: 443, description: HOME - Uptime Kuma to OPNsense WebGUI}
+      - {order: 50, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.20.134, destination_port: 8080, description: HOME - Caddy to rooted TV}
+      - {order: 60, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.10, destination_port: 8096, description: HOME - Caddy to Jellyfin}
+      - {order: 70, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.11, destination_port: 8080, description: HOME - Caddy to qBittorrent}
+      - {order: 80, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.12, destination_port: 8989, description: HOME - Caddy to Sonarr}
+      - {order: 90, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.13, destination_port: 7878, description: HOME - Caddy to Radarr}
+      - {order: 100, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.14, destination_port: 9696, description: HOME - Caddy to Prowlarr}
+      - {order: 110, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.10, destination_port: 8096, description: HOME - Uptime Kuma to Jellyfin}
+      - {order: 120, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.11, destination_port: 8080, description: HOME - Uptime Kuma to qBittorrent}
+      - {order: 130, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.12, destination_port: 8989, description: HOME - Uptime Kuma to Sonarr}
+      - {order: 140, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.13, destination_port: 7878, description: HOME - Uptime Kuma to Radarr}
+      - {order: 150, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.14, destination_port: 9696, description: HOME - Uptime Kuma to Prowlarr}
+      - {order: 160, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.50.10, destination_port: 7777, description: HOME - Uptime Kuma to Terraria}
+      - {order: 170, action: pass, family: IPv4, protocol: TCP, source: HOME net, destination: 10.0.50.10, destination_port: 7777, description: HOME - Clients to Terraria}
+      - {order: 180, action: block, family: IPv4, protocol: any, source: HOME net, destination: LOCAL_NETS, description: HOME - Block initiation to private networks}
+      - {order: 190, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: HOME - Allow Internet}
+      - {order: 200, enabled: false, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: TEMP - HOME allow all, status: confirmed, purpose: Disabled rollback rule retained temporarily}
+    same_vlan_note: HOME peers remain directly reachable through switching; these rules govern traffic routed from HOME to the firewall and other VLANs.
 
   - interface: IOT
     vlan: iot
@@ -101,8 +114,8 @@ homepage_and_monitoring:
   status: confirmed
   hosts: [homepage, uptime-kuma]
   placement: HOME VLAN
-  opnsense_rule_change_required: false
-  reason: HOME currently has broad outbound access, including the monitor targets; same-HOME traffic does not traverse OPNsense.
+  opnsense_rules_required: true
+  current_policy: Uptime Kuma has exact TCP passes to OPNsense 443, SERVERS service ports, and Terraria 7777; same-HOME probes remain switched locally.
   constraint: Do not move Uptime Kuma to SERVERS or add a broad SERVERS-to-management exception merely for monitoring.
 
 rooted_tv_management:
@@ -112,8 +125,8 @@ rooted_tv_management:
   destination: 10.0.20.134
   protocol: TCP
   destination_port: 8080
-  current_policy: Allowed by TEMP HOME allow all; return traffic is stateful.
-  future_constraint: Preserve this exact flow when HOME policy is tightened; do not add a broad IOT-to-HOME exception.
+  current_policy: Exact HOME ingress pass from Caddy to the TV; return traffic is stateful.
+  constraint: Do not add a broad IOT-to-HOME exception.
 
 nat:
   port_forwards:

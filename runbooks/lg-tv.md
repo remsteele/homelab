@@ -12,9 +12,10 @@ client -> tv.home.rvsteele.com -> 10.0.10.3:443 (Caddy)
 ```
 
 Unbound and AdGuard both return `10.0.10.3` for the web name. No public DNS A
-record or WAN port forward is required. Caddy-to-TV traffic is currently
-permitted by the broad HOME rule; preserve only this scoped TCP 8080 flow when
-HOME is tightened.
+record or WAN port forward is required. OPNsense permits only the scoped
+`10.0.10.3 -> 10.0.20.134` TCP 8080 proxy flow for Caddy. The reserved MacBook
+has a separate private-network administration exception that covers SSH and
+direct troubleshooting; ordinary HOME clients do not have direct IOT access.
 
 ## Verification
 

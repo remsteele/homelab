@@ -190,7 +190,8 @@ services:
       allowed_hosts: [homepage.home.rvsteele.com, "10.0.10.5:3000"]
       docker_socket_mounted: false
       container_uid_gid: "1000:1000"
-    configured_links: [opnsense-webgui, proxmox-webgui, adguard-home, uptime-kuma, eap-webui, jellyfin, qbittorrent, sonarr, radarr, prowlarr]
+    configured_links: [opnsense-webgui, proxmox-webgui, adguard-home, uptime-kuma, eap-webui, lg-tv-root-ui, jellyfin, qbittorrent, sonarr, radarr, prowlarr]
+    dashboard_updated_as_of: "2026-11-02"
     health_as_of_2026_11_01: {direct_healthcheck_status: 200, https_root_status: 307, authenticated_https_root_status: 200, tls_certificate_verification: passed}
 
   - id: uptime-kuma

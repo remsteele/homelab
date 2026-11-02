@@ -30,11 +30,17 @@ gateway `10.0.10.1`. It must not have an IP or default gateway on WAN bridge
 
 ## Trust policy
 
-HOME currently has broad access and can initiate toward SERVERS, DMZ, and the
-Internet. IOT, GUEST, SERVERS, and DMZ may query OPNsense DNS, are blocked from
+HOME no longer has broad routed access. It may query OPNsense DNS; the reserved
+MacBook may administer private networks; Caddy and Uptime Kuma have exact
+backend exceptions; HOME clients may reach Terraria TCP 7777; other routed
+RFC1918 initiation is blocked before a general Internet pass. Same-HOME peers
+remain directly reachable through switching. The former `TEMP - HOME allow
+all` rule is disabled at the bottom as a temporary rollback path.
+
+IOT, GUEST, SERVERS, and DMZ may query OPNsense DNS, are blocked from
 initiating toward RFC1918 networks, and then may access the Internet. Stateful
-replies to HOME-initiated sessions remain allowed. An explicit IOT-to-Jellyfin
-exception supports the TV if it resides on IOT.
+replies to permitted sessions remain allowed. An explicit IOT-to-Jellyfin
+exception supports the TV.
 
 qBittorrent is a host-specific exception within SERVERS. Before generic rules,
 it may query OPNsense DNS and reach only the current Proton endpoint on UDP
