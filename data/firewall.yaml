@@ -11,7 +11,7 @@ proxmox_firewall:
   verified_as_of: "2026-11-01"
   daemon_status: disabled/running
   rule_files_found: 0
-  guest_nic_firewall_flags: enabled on VMs and containers 100-109
+  guest_nic_firewall_flags: enabled on VMs and containers 100-111
   enforcement_note: Guest firewall flags do not provide an independently verified policy while the Proxmox firewall is disabled.
   architecture_note: OPNsense remains the active inter-VLAN firewall; same-VLAN VLAN 40 traffic is not filtered by OPNsense.
 
@@ -97,6 +97,14 @@ planned_adguard_dns_rules:
   qbittorrent_exception: Keep CT 102 on 10.0.40.1 unless its host-specific fail-closed DNS rule is deliberately changed and leak-tested.
   current_state: Not applied; non-HOME VLANs remain limited to DNS on This Firewall.
 
+homepage_and_monitoring:
+  status: confirmed
+  hosts: [homepage, uptime-kuma]
+  placement: HOME VLAN
+  opnsense_rule_change_required: false
+  reason: HOME currently has broad outbound access, including the monitor targets; same-HOME traffic does not traverse OPNsense.
+  constraint: Do not move Uptime Kuma to SERVERS or add a broad SERVERS-to-management exception merely for monitoring.
+
 nat:
   port_forwards:
     - id: terraria
@@ -131,4 +139,6 @@ explicit_non_exposures:
   - {service: SSH on games VM, port: 22, wan_exposure: prohibited}
   - {service: Caddy internal HTTPS, ports: "80/443", wan_exposure: not-required, reason: Cloudflare DNS-01 certificates}
   - {service: AdGuard Home, ports: "53/80", wan_exposure: prohibited, reason: Internal DNS and administration only}
+  - {service: Homepage, port: 3000, wan_exposure: prohibited, reason: Internal dashboard behind Caddy}
+  - {service: Uptime Kuma, port: 3001, wan_exposure: prohibited, reason: Internal monitoring UI behind Caddy}
 

@@ -27,6 +27,7 @@ Use only these state labels in `status` fields: `confirmed`, `historical`,
 | IP, MAC, VMID, VLAN, bridge, gateway, or topology | `data/hosts.yaml`, `data/networks.yaml`, `data/physical.yaml` | `docs/topology.md`, `docs/generated/address-book.md` |
 | DNS, DHCP, reservations, local names, or resolver behavior | `data/dns_dhcp.yaml` | `runbooks/service-onboarding.md`, `runbooks/adguard-home.md` |
 | AdGuard Home | `data/services.yaml`, `data/dns_dhcp.yaml`, `data/plans.yaml` | `runbooks/adguard-home.md` |
+| Homepage, Uptime Kuma, dashboards, or monitoring | `data/services.yaml`, `data/hosts.yaml`, `data/connections.yaml` | `runbooks/observability.md` |
 | Caddy, HTTPS, certificates, or reverse proxies | `data/services.yaml`, `data/connections.yaml` | `runbooks/caddy.md`, latest sanitized Caddy snapshot |
 | Firewall rule, alias, NAT, port forward, exposure, or segmentation | `data/firewall.yaml`, `data/connections.yaml`, `data/networks.yaml` | `docs/topology.md`, `runbooks/opnsense-api.md`, `data/verification.yaml` |
 | OPNsense access, API, recovery, or audit | `data/security.yaml`, `data/firewall.yaml`, `data/dns_dhcp.yaml` | `runbooks/opnsense-api.md`, `runbooks/opnsense-recovery.md`, `automation/discovery/README.md` |

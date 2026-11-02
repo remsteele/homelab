@@ -49,6 +49,8 @@ planned_reservations:
   status: planned
   records:
     - {host: adguard, domain: home.rvsteele.com, ip: 10.0.10.4, mac: "bc:24:11:ad:00:09", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
+    - {host: homepage, domain: home.rvsteele.com, ip: 10.0.10.5, mac: "bc:24:11:a3:fa:7d", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
+    - {host: uptime-kuma, domain: home.rvsteele.com, ip: 10.0.10.6, mac: "bc:24:11:9f:a1:9b", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
 
 internal_records:
   status: confirmed
@@ -64,6 +66,8 @@ internal_records:
     - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: adguard.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: OPNsense Unbound returned no A answer on 2026-11-01; add the override before or with client rollout}
+    - {name: homepage.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: Add an OPNsense Unbound override to 10.0.10.3}
+    - {name: uptime.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: Add an OPNsense Unbound override to 10.0.10.3}
     - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
     - {name: dvd.home.rvsteele.com, type: A, value: absent, purpose: Future Caddy proxy, status: planned}
     - {name: ntop.home.rvsteele.com, type: A, value: absent, purpose: Obsolete ntopng UI, status: confirmed, state_note: Cleanup complete in DNS}
@@ -73,6 +77,8 @@ adguard_rewrites:
   verified_as_of: "2026-11-01"
   records:
     - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
+    - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
+    - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
 
 client_dns_distribution:
   status: confirmed

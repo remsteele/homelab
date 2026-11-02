@@ -71,6 +71,24 @@ secret_locations:
     purpose: AdGuard Home web administration
     remote_storage: AdGuard stores only its password hash in /opt/AdGuardHome/AdGuardHome.yaml.
     value_policy: excluded
+  - id: homepage-authentication
+    status: confirmed
+    host: user-mac
+    location: macOS Keychain generic passwords
+    service_names: [homepage.home.rvsteele.com, homepage-auth-secret]
+    accounts: [remington, homepage]
+    purpose: Homepage login password and server-side authentication secret
+    remote_storage: Values are supplied to the container from /opt/homepage/.env, mode 0600; the repository contains neither value.
+    value_policy: excluded
+  - id: uptime-kuma-admin-password
+    status: confirmed
+    host: user-mac
+    location: macOS Keychain generic password
+    service_name: uptime.home.rvsteele.com
+    account: remington
+    purpose: Uptime Kuma web administration
+    remote_storage: Uptime Kuma stores a password hash in its local SQLite database.
+    value_policy: excluded
   - id: terraria-server-secret
     status: confirmed
     host: games
@@ -101,6 +119,8 @@ ssh_policy:
     - {host: radarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: prowlarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: adguard, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: homepage, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true, host_key_fingerprint: "SHA256:nnaSK+7YGKfY52KquTOigj6PukIrN8hX52YgpjakpiA"}
+    - {host: uptime-kuma, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true, host_key_fingerprint: "SHA256:nU7Lr2UvyOO+22avu2aD3tHJrgfadApwGhx/p4gjzO0"}
     - {host: games, user: remington, key_auth: confirmed, advertised_auth_methods: "publickey,password"}
     - {host: dvdstream, user: root, key_auth: user-reported, verification: unavailable-while-powered-off}
   not_ssh_managed:
@@ -128,6 +148,8 @@ service_exposure:
     - radarr
     - prowlarr
     - adguard-home
+    - homepage
+    - uptime-kuma
     - flaresolverr
     - dvd-watch-now
 

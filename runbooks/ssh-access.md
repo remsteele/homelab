@@ -16,6 +16,9 @@ into this repository, a VM/container, a snapshot, or a prompt.
 | OPNsense | 10.0.10.1 | `remington` | Public-key only; root login user-confirmed disabled |
 | Proxmox | 10.0.10.2 | `root` | Root key and password login currently allowed |
 | Caddy | 10.0.10.3 | `root` | Root key-only; passwords enabled globally |
+| AdGuard Home | 10.0.10.4 | `root` | Root key-only; passwords enabled globally |
+| Homepage | 10.0.10.5 | `root` | Root key-only; passwords enabled globally |
+| Uptime Kuma | 10.0.10.6 | `root` | Root key-only; passwords enabled globally |
 | Jellyfin | 10.0.40.10 | `root` | Root key-only; passwords enabled globally |
 | qBittorrent | 10.0.40.11 | `root` | Root key-only; passwords enabled globally |
 | Sonarr | 10.0.40.12 | `root` | Root key-only; passwords enabled globally |

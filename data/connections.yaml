@@ -60,6 +60,8 @@ connections:
   - {id: caddy-radarr, status: confirmed, kind: reverse-proxy, from: caddy, to: radarr, protocol: HTTP, port: 7878}
   - {id: caddy-prowlarr, status: confirmed, kind: reverse-proxy, from: caddy, to: prowlarr, protocol: HTTP, port: 9696}
   - {id: caddy-adguard, status: confirmed, kind: reverse-proxy, from: caddy, to: adguard, protocol: HTTP, port: 80}
+  - {id: caddy-homepage, status: confirmed, kind: reverse-proxy, from: caddy, to: homepage, protocol: HTTP, port: 3000}
+  - {id: caddy-uptime-kuma, status: confirmed, kind: reverse-proxy, from: caddy, to: uptime-kuma, protocol: HTTP-WebSocket, port: 3001}
   - {id: caddy-pve, status: confirmed, kind: reverse-proxy, from: caddy, to: pve, protocol: HTTPS, port: 8006, tls_verify: false}
   - {id: caddy-router, status: needs_verification, kind: reverse-proxy, from: caddy, to: router, protocol: HTTPS, port: 443, tls_verify: false}
   - {id: caddy-eap650, status: needs_verification, kind: reverse-proxy, from: caddy, to: eap650, protocol: HTTPS, port: 443, tls_verify: false}
@@ -70,6 +72,23 @@ connections:
   - {id: prowlarr-sonarr, status: confirmed, kind: application-api, from: prowlarr, to: sonarr, protocol: HTTP, port: 8989, sync: Full Sync}
   - {id: prowlarr-radarr, status: confirmed, kind: application-api, from: prowlarr, to: radarr, protocol: HTTP, port: 7878, sync: Full Sync}
   - {id: prowlarr-flaresolverr, status: confirmed, kind: loopback-api, from: prowlarr, to: flaresolverr, protocol: HTTP, address: 127.0.0.1, port: 8191}
+
+  - id: uptime-kuma-monitoring
+    status: confirmed
+    kind: monitoring
+    from: uptime-kuma
+    interval_seconds: 60
+    targets:
+      - {to: homepage, protocol: HTTP, port: 3000, path: /api/healthcheck}
+      - {to: router, protocol: HTTPS, port: 443, tls_verify: false}
+      - {to: pve, protocol: HTTPS, port: 8006, tls_verify: false}
+      - {to: adguard, protocol: HTTP, port: 80}
+      - {to: jellyfin, protocol: HTTP, port: 8096}
+      - {to: qbittorrent, protocol: HTTP, port: 8080}
+      - {to: sonarr, protocol: HTTP, port: 8989}
+      - {to: radarr, protocol: HTTP, port: 7878}
+      - {to: prowlarr, protocol: HTTP, port: 9696}
+      - {to: games, protocol: TCP, port: 7777}
 
   - id: qbittorrent-proton
     status: confirmed

@@ -27,7 +27,10 @@ resolver:
   private_ptr_upstream: 10.0.10.1
   filtering_enabled: true
   default_filter_rules_observed: 186512
-  ui_rewrite: {name: adguard.home.rvsteele.com, value: 10.0.10.3}
+  ui_rewrites:
+    - {name: adguard.home.rvsteele.com, value: 10.0.10.3}
+    - {name: homepage.home.rvsteele.com, value: 10.0.10.3}
+    - {name: uptime.home.rvsteele.com, value: 10.0.10.3}
 
 verification:
   public_a: passed

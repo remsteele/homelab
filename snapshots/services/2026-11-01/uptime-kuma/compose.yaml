@@ -1,0 +1,10 @@
+# Sanitized capture from CT 111. Persistent data and credentials are excluded.
+services:
+  uptime-kuma:
+    image: louislam/uptime-kuma:2.5.8
+    container_name: uptime-kuma
+    restart: unless-stopped
+    ports:
+      - "10.0.10.6:3001:3001"
+    volumes:
+      - /opt/uptime-kuma/data:/app/data

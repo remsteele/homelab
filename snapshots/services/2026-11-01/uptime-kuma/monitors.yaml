@@ -1,0 +1,17 @@
+snapshot_version: 1
+collected_at: "2026-11-01"
+sanitized: true
+interval_seconds: 60
+retry_interval_seconds: 60
+max_retries: 2
+monitors:
+  - {name: Homepage, type: HTTP, endpoint: "http://10.0.10.5:3000/api/healthcheck", status: up}
+  - {name: OPNsense, type: HTTPS, endpoint: "https://10.0.10.1", tls_verify: false, status: up}
+  - {name: Proxmox, type: HTTPS, endpoint: "https://10.0.10.2:8006", tls_verify: false, status: up}
+  - {name: AdGuard Home, type: HTTP, endpoint: "http://10.0.10.4", status: up}
+  - {name: Jellyfin, type: HTTP, endpoint: "http://10.0.40.10:8096", status: up}
+  - {name: qBittorrent, type: HTTP, endpoint: "http://10.0.40.11:8080", status: up}
+  - {name: Sonarr, type: HTTP, endpoint: "http://10.0.40.12:8989", status: up}
+  - {name: Radarr, type: HTTP, endpoint: "http://10.0.40.13:7878", status: up}
+  - {name: Prowlarr, type: HTTP, endpoint: "http://10.0.40.14:9696", status: up}
+  - {name: Terraria, type: TCP, endpoint: "10.0.50.10:7777", status: up}

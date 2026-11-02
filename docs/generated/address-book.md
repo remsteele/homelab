@@ -17,6 +17,8 @@ Generated from `data/hosts.yaml` by `tools/generate_docs.rb`. Do not edit by han
 | games | qemu-vm | 103 | running | 10.0.50.10 | dmz | bc:24:11:90:be:0b | confirmed |
 | caddy | lxc-unprivileged | 104 | running | 10.0.10.3 | home | bc:24:11:a9:2e:07 | confirmed |
 | adguard | lxc-unprivileged | 109 | running | 10.0.10.4 | home | bc:24:11:ad:00:09 | confirmed |
+| homepage | lxc-unprivileged | 110 | running | 10.0.10.5 | home | bc:24:11:a3:fa:7d | confirmed |
+| uptime-kuma | lxc-unprivileged | 111 | running | 10.0.10.6 | home | bc:24:11:9f:a1:9b | confirmed |
 | sonarr | lxc-unprivileged | 105 | running | 10.0.40.12 | servers | bc:24:11:ff:94:4c | confirmed |
 | radarr | lxc-unprivileged | 106 | running | 10.0.40.13 | servers | bc:24:11:18:4f:26 | confirmed |
 | prowlarr | lxc-unprivileged | 107 | running | 10.0.40.14 | servers | bc:24:11:3b:00:b7 | confirmed |

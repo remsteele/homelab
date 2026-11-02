@@ -155,6 +155,58 @@ hosts:
       - The static address is configured in the LXC definition, not leased by DHCP.
       - The container has no media mount and does not run DHCP.
 
+  - id: homepage
+    status: confirmed
+    hostname: homepage
+    fqdn: homepage.home.rvsteele.com
+    kind: lxc-unprivileged
+    vmid: 110
+    os: Debian 13
+    role: Internal service dashboard
+    template: debian-13-standard_13.1-2_amd64.tar.zst
+    resources: {vcpu: 1, memory_mib: 512, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
+    lxc_features: {nesting: true, keyctl: true}
+    power_state: running
+    power_state_as_of: "2026-11-01"
+    interfaces:
+      - {name: eth0, bridge: vmbr1, vlan: home, mac: "bc:24:11:a3:fa:7d", addressing: static, firewall: true}
+    addresses:
+      - {ip: 10.0.10.5, vlan: home, prefix: 24, status: confirmed}
+    gateway: 10.0.10.1
+    dns: {nameserver: 10.0.10.1, search_domain: home.rvsteele.com, status: confirmed}
+    onboot: true
+    mounts: []
+    notes:
+      - The static address is configured in the LXC definition, not leased by DHCP.
+      - Docker is used only inside this LXC; the Docker socket is not exposed to Homepage.
+      - The container has no media mount.
+
+  - id: uptime-kuma
+    status: confirmed
+    hostname: uptime-kuma
+    fqdn: uptime.home.rvsteele.com
+    kind: lxc-unprivileged
+    vmid: 111
+    os: Debian 13
+    role: Internal availability monitoring
+    template: debian-13-standard_13.1-2_amd64.tar.zst
+    resources: {vcpu: 1, memory_mib: 1024, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
+    lxc_features: {nesting: true, keyctl: true}
+    power_state: running
+    power_state_as_of: "2026-11-01"
+    interfaces:
+      - {name: eth0, bridge: vmbr1, vlan: home, mac: "bc:24:11:9f:a1:9b", addressing: static, firewall: true}
+    addresses:
+      - {ip: 10.0.10.6, vlan: home, prefix: 24, status: confirmed}
+    gateway: 10.0.10.1
+    dns: {nameserver: 10.0.10.1, search_domain: home.rvsteele.com, status: confirmed}
+    onboot: true
+    mounts: []
+    notes:
+      - The static address is configured in the LXC definition, not leased by DHCP.
+      - The SQLite database is on the LXC local root disk, not a network filesystem.
+      - The container has no media mount.
+
   - id: sonarr
     status: confirmed
     hostname: sonarr

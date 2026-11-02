@@ -33,10 +33,12 @@ guests:
   - {vmid: 107, name: prowlarr, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 1024, disk_gib: 8, onboot: true}
   - {vmid: 108, name: dvdstream, type: lxc-privileged, state: stopped, cores: 4, memory_mib: 2048, disk_gib: 16, onboot: true}
   - {vmid: 109, name: adguard, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 512, disk_gib: 8, onboot: true, address: 10.0.10.4/24, vlan: 10}
+  - {vmid: 110, name: homepage, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 512, disk_gib: 8, onboot: true, address: 10.0.10.5/24, vlan: 10, nesting: true, keyctl: true}
+  - {vmid: 111, name: uptime-kuma, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 1024, disk_gib: 8, onboot: true, address: 10.0.10.6/24, vlan: 10, nesting: true, keyctl: true}
 
 storage:
-  local_percent_used: 7.45
-  local_lvm_percent_used: 18.26
+  local_percent_used: 7.46
+  local_lvm_percent_used: 20.32
   media_percent_used: 23.77
   media_filesystem_uuid: 09678cd4-b5f7-4711-9283-e092bea2b46f
   media_smart:

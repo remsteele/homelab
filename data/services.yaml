@@ -100,7 +100,7 @@ services:
     exact_config_status: confirmed
     exact_config_verified_as_of: "2026-11-01"
     validation: Valid configuration; formatting warning at line 12
-    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr, adguard]
+    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr, adguard, homepage, uptime-kuma]
     absent_planned_backends: [dvdstream]
 
   - id: adguard-home
@@ -144,6 +144,80 @@ services:
       status: confirmed
       current_client_dns: OPNsense Unbound remains distributed to existing clients.
       remaining: OPNsense firewall, DHCP DNS, and Unbound host-override changes documented in runbooks/adguard-home.md.
+
+  - id: homepage
+    status: confirmed
+    host: homepage
+    role: Authenticated internal dashboard for homelab services
+    version: v2.7.0
+    runtime:
+      implementation: Docker Compose
+      engine_version: 26.1.5+dfsg1
+      compose_version: 2.26.1-4
+      image: ghcr.io/gethomepage/homepage:v2.7.0
+      restart_policy: unless-stopped
+      reboot_verified: true
+      verified_as_of: "2026-11-01"
+    config_paths:
+      - /opt/homepage/compose.yaml
+      - /opt/homepage/.env
+      - /opt/homepage/config
+    listen:
+      - {address: 10.0.10.5, protocol: HTTP, port: 3000, purpose: Caddy backend and direct HOME administration}
+    url: https://homepage.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.10.5:3000
+    authentication:
+      enabled: true
+      password_value: excluded
+      cookie_secret_value: excluded
+    security:
+      allowed_hosts: [homepage.home.rvsteele.com, "10.0.10.5:3000"]
+      docker_socket_mounted: false
+      container_uid_gid: "1000:1000"
+    configured_links: [opnsense-webgui, proxmox-webgui, adguard-home, uptime-kuma, eap-webui, jellyfin, qbittorrent, sonarr, radarr, prowlarr]
+    health_as_of_2026_11_01: {direct_healthcheck_status: 200, https_root_status: 307, authenticated_https_root_status: 200, tls_certificate_verification: passed}
+
+  - id: uptime-kuma
+    status: confirmed
+    host: uptime-kuma
+    role: Internal availability monitoring and history
+    version: 2.5.8
+    runtime:
+      implementation: Docker Compose
+      engine_version: 26.1.5+dfsg1
+      compose_version: 2.26.1-4
+      image: louislam/uptime-kuma:2.5.8
+      restart_policy: unless-stopped
+      reboot_verified: true
+      verified_as_of: "2026-11-01"
+    config_paths:
+      - /opt/uptime-kuma/compose.yaml
+      - /opt/uptime-kuma/data
+    database: {type: SQLite, path: /opt/uptime-kuma/data/kuma.db, storage: local-LXC-root-disk}
+    listen:
+      - {address: 10.0.10.6, protocol: HTTP, port: 3001, purpose: Caddy backend and direct HOME administration}
+    url: https://uptime.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.10.6:3001
+    authentication: {username: remington, password_value: excluded}
+    monitors:
+      interval_seconds: 60
+      retry_interval_seconds: 60
+      max_retries: 2
+      targets:
+        - {name: Homepage, type: HTTP, endpoint: "http://10.0.10.5:3000/api/healthcheck"}
+        - {name: OPNsense, type: HTTPS, endpoint: "https://10.0.10.1", tls_verification: skipped-self-signed}
+        - {name: Proxmox, type: HTTPS, endpoint: "https://10.0.10.2:8006", tls_verification: skipped-self-signed}
+        - {name: AdGuard Home, type: HTTP, endpoint: "http://10.0.10.4"}
+        - {name: Jellyfin, type: HTTP, endpoint: "http://10.0.40.10:8096"}
+        - {name: qBittorrent, type: HTTP, endpoint: "http://10.0.40.11:8080"}
+        - {name: Sonarr, type: HTTP, endpoint: "http://10.0.40.12:8989"}
+        - {name: Radarr, type: HTTP, endpoint: "http://10.0.40.13:7878"}
+        - {name: Prowlarr, type: HTTP, endpoint: "http://10.0.40.14:9696"}
+        - {name: Terraria, type: TCP, endpoint: "10.0.50.10:7777"}
+    notifications: not-configured
+    health_as_of_2026_11_01: {container_health: healthy, administrator_login: passed, all_ten_monitors_up: true, https_root_status: 302, tls_certificate_verification: passed}
 
   - id: jellyfin
     status: confirmed

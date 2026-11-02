@@ -1,0 +1,28 @@
+# Sanitized merged view of the non-secret Homepage settings.
+settings:
+  title: Homelab
+  description: Remington home infrastructure
+  start_url: https://homepage.home.rvsteele.com
+  theme: dark
+  color: slate
+  target: _blank
+  status_style: dot
+  use_equal_heights: true
+  hide_version: false
+  layout:
+    Infrastructure: {style: row, columns: 5}
+    Media: {style: row, columns: 5}
+links:
+  Infrastructure:
+    - {name: OPNsense, url: https://router.home.rvsteele.com}
+    - {name: Proxmox, url: https://pve.home.rvsteele.com}
+    - {name: AdGuard Home, url: https://adguard.home.rvsteele.com}
+    - {name: Uptime Kuma, url: https://uptime.home.rvsteele.com}
+    - {name: EAP650, url: https://ap.home.rvsteele.com}
+  Media:
+    - {name: Jellyfin, url: https://jellyfin.home.rvsteele.com}
+    - {name: qBittorrent, url: https://qbittorrent.home.rvsteele.com}
+    - {name: Sonarr, url: https://sonarr.home.rvsteele.com}
+    - {name: Radarr, url: https://radarr.home.rvsteele.com}
+    - {name: Prowlarr, url: https://prowlarr.home.rvsteele.com}
+widgets: [resources, google-search, datetime]

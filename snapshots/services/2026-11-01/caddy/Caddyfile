@@ -87,3 +87,19 @@ adguard.home.rvsteele.com {
     }
     reverse_proxy 10.0.10.4:80
 }
+
+homepage.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.10.5:3000
+}
+
+uptime.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.10.6:3001
+}

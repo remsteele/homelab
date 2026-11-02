@@ -1,0 +1,18 @@
+# Sanitized capture from CT 110. Secret values remain in /opt/homepage/.env.
+services:
+  homepage:
+    image: ghcr.io/gethomepage/homepage:v2.7.0
+    container_name: homepage
+    restart: unless-stopped
+    ports:
+      - "10.0.10.5:3000:3000"
+    volumes:
+      - /opt/homepage/config:/app/config
+    environment:
+      HOMEPAGE_ALLOWED_HOSTS: homepage.home.rvsteele.com,10.0.10.5:3000
+      HOMEPAGE_AUTH_ENABLED: "true"
+      HOMEPAGE_AUTH_SECRET: ${HOMEPAGE_AUTH_SECRET}
+      HOMEPAGE_AUTH_PASSWORD: ${HOMEPAGE_AUTH_PASSWORD}
+      HOMEPAGE_EXTERNAL_URL: https://homepage.home.rvsteele.com
+      PUID: "1000"
+      PGID: "1000"

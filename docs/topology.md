@@ -61,6 +61,12 @@ UI name is rewritten to Caddy at `10.0.10.3`. Client DHCP distribution and the
 required non-HOME VLAN firewall exceptions remain staged, so OPNsense is still
 the resolver delivered to most clients.
 
+Homepage (CT 110, `10.0.10.5`) and Uptime Kuma (CT 111, `10.0.10.6`) are on
+HOME. Caddy serves their browser names, while Uptime Kuma probes backend IPs
+directly across HOME, SERVERS, and DMZ. This placement uses HOME's existing
+trusted access and avoids a broad monitoring exception from a restricted VLAN.
+Neither container mounts the media disk.
+
 ## Media data path
 
 ```text

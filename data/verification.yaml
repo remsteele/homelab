@@ -5,6 +5,11 @@ checks:
   - {id: adguard-resolution, priority: high, status: confirmed, target: adguard, evidence: Public DoH, conditional local lookup, default-list block, and Caddy rewrite queries passed on 2026-11-01}
   - {id: adguard-https, priority: high, status: confirmed, target: caddy, evidence: Caddy config validated; HTTPS returned 302 through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
   - {id: adguard-network-rollout, priority: high, status: needs_verification, target: [router, adguard], evidence: Apply and export Unbound override, per-VLAN DNS passes, and DHCP DNS options; test one client per VLAN}
+  - {id: homepage-service, priority: high, status: confirmed, target: homepage, evidence: Pinned v2.7.0 container healthy after CT 110 reboot; direct /api/healthcheck and authenticated HTTPS root returned 200 on 2026-11-01}
+  - {id: homepage-https, priority: high, status: confirmed, target: caddy, evidence: Caddy configuration validated; HTTPS returned an authentication redirect through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
+  - {id: uptime-kuma-service, priority: high, status: confirmed, target: uptime-kuma, evidence: Pinned 2.5.8 container and local SQLite data returned after CT 111 reboot; all ten configured monitors reported UP on 2026-11-01}
+  - {id: uptime-kuma-https, priority: high, status: confirmed, target: caddy, evidence: HTTPS returned the login redirect through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
+  - {id: observability-opnsense-dns, priority: high, status: needs_verification, target: router, evidence: Add the two Dnsmasq host identities and two Unbound Caddy overrides documented in runbooks/observability.md, then query 10.0.10.1 directly}
   - {id: pve-network-config, priority: high, status: confirmed, target: pve, evidence: Read-only SSH capture of interfaces, addresses, routes, and bridge VLANs on 2026-11-01}
   - {id: opnsense-firewall-export, priority: high, status: needs_verification, target: router, evidence: Sanitized ordered rules, aliases, floating rules, and generated NAT associations}
   - {id: opnsense-nat-export, priority: high, status: needs_verification, target: router, evidence: Port-forward and outbound-NAT export including rule order}

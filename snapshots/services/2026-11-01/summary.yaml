@@ -51,6 +51,21 @@ hosts:
     service: {name: AdGuardHome, version: v0.107.79, enabled: true, active: true, reboot_verified: true}
     listeners: [22/tcp, 53/tcp, 53/udp, 80/tcp]
     address: 10.0.10.4/24
+  - id: homepage
+    os: Debian 13
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: homepage, version: v2.7.0, implementation: Docker Compose, image_pinned: true, healthy: true, reboot_verified: true}
+    listeners: [22/tcp, 3000/tcp]
+    address: 10.0.10.5/24
+    security: {built_in_authentication: true, docker_socket_mounted: false, media_mount: false}
+  - id: uptime-kuma
+    os: Debian 13
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: uptime-kuma, version: 2.5.8, implementation: Docker Compose, image_pinned: true, healthy: true, reboot_verified: true}
+    listeners: [22/tcp, 3001/tcp]
+    address: 10.0.10.6/24
+    persistence: {database: SQLite, location: local-LXC-root-disk}
+    monitoring: {configured: 10, up_after_reboot: 10}
   - id: eap650
     ssh: {state: unavailable, reason: TCP 22 connection refused}
 
@@ -64,3 +79,5 @@ https_health:
   radarr: 302
   prowlarr: 302
   adguard: 302
+  homepage: 307
+  uptime: 302
