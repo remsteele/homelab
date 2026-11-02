@@ -35,6 +35,10 @@ Important attributes:
 - `UDMA_CRC_Error_Count`: 0
 - Power-on hours: 35750
 
+The short offline self-test run on 2026-11-01 completed without error. The
+pending-sector count remained 3,304 before and after the test, so the successful
+short test does not change the replacement recommendation.
+
 Do not start a long SMART test merely to make the number change before data is
 safe. A read test can force marginal sectors to surface and may increase stress
 on a failing disk.

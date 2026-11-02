@@ -45,6 +45,12 @@ storage:
     offline_uncorrectable: 0
     udma_crc_errors: 0
     assessment: critical-replacement-recommended
+    short_test:
+      result: Completed without error
+      power_on_hours: 35750
+      pending_sectors_before: 3304
+      pending_sectors_after: 3304
+      interpretation: The short test passed but did not resolve or reduce the pending-sector risk.
   nvme_smart:
     overall: PASSED
     percentage_used: 0

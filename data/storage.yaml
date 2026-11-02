@@ -41,7 +41,9 @@ devices:
       current_pending_sectors: 3304
       offline_uncorrectable: 0
       udma_crc_errors: 0
-      last_short_test: Completed without error at 35005 power-on hours
+      last_short_test: Completed without error at 35750 power-on hours on 2026-11-01
+      prior_short_test: Completed without error at 35005 power-on hours
+      post_test_pending_sector_change: 0
       warning: The overall PASSED flag does not negate the extremely high pending-sector count.
 
 media_bind:
