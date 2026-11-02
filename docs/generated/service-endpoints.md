@@ -22,4 +22,5 @@ Generated from `data/services.yaml` by `tools/generate_docs.rb`. Do not edit by 
 | terraria | games | TCP 10.0.50.10:7777 | terraria.rvsteele.com:7777 | — | confirmed |
 | dvd-inspection | dvdstream |  | — | unavailable | confirmed |
 | dvd-watch-now | dvdstream |  | https://dvd.home.rvsteele.com | unavailable-host-stopped | planned |
+| lg-tv-root-ui | lg-c3 | HTTP 10.0.20.134:8080<br>SSH 10.0.20.134:22<br>Telnet 10.0.20.134:23 | https://tv.home.rvsteele.com | — | confirmed |
 | zenarmor | router |  | — | — | confirmed |

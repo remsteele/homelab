@@ -22,7 +22,8 @@ The Cloudflare token file is `/etc/caddy/cloudflare_token`, expected
 ## Backend rules
 
 - Plain HTTP: Jellyfin 8096, qBittorrent 8080, Sonarr 8989, Radarr 7878,
-  Prowlarr 9696, AdGuard Home 80, Homepage 3000, Uptime Kuma 3001.
+  Prowlarr 9696, AdGuard Home 80, Homepage 3000, Uptime Kuma 3001, rooted
+  LG TV 8080.
 - Self-signed HTTPS: Proxmox 8006, OPNsense 443, EAP650 443. These use
   backend TLS verification bypass because the backend certificates are local;
   the client-facing certificate remains publicly trusted.

@@ -47,6 +47,10 @@ source-of-truth files and sanitized snapshot are updated.
 - [ ] Repair `remington@10.0.10.1` SSH key access. OPNsense advertised
   public-key-only authentication but rejected the documented Ed25519 key on
   2026-11-02. Preserve console and API recovery access while fixing it.
+- [ ] Install the homelab public key for `root` on the rooted LG TV, verify a
+  second `ssh tv` session, then disable its unencrypted Telnet TCP 23 service.
+  Confirm the persistent authorized-keys path for the installed webOS build;
+  never copy the private key to the TV.
 - [ ] Harden Proxmox SSH: establish and test a named administrator and console
   recovery path, identify the extra RSA root key, then disable root/password
   SSH if no required workflow depends on it.

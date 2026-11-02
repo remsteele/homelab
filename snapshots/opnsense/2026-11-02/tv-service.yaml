@@ -1,0 +1,30 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: Authenticated OPNsense and AdGuard APIs plus direct DNS queries
+
+dnsmasq_host:
+  host: tv
+  domain: home.rvsteele.com
+  ip: 10.0.20.134
+  mac: "84:90:0a:95:4b:a2"
+
+unbound_override:
+  name: tv.home.rvsteele.com
+  type: A
+  value: 10.0.10.3
+  status: confirmed
+
+adguard_rewrite:
+  name: tv.home.rvsteele.com
+  type: A
+  value: 10.0.10.3
+  enabled: true
+  status: confirmed
+
+verification:
+  unbound_query: 10.0.10.3
+  adguard_query: 10.0.10.3
+  caddy_https_status: 200
+  tls_verification: passed
+  backend_http_status: 200

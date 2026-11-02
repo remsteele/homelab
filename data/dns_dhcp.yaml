@@ -41,6 +41,7 @@ reservations:
     - {host: homepage, domain: home.rvsteele.com, ip: 10.0.10.5, mac: "bc:24:11:a3:fa:7d"}
     - {host: uptime-kuma, domain: home.rvsteele.com, ip: 10.0.10.6, mac: "bc:24:11:9f:a1:9b"}
     - {host: remington-macbook, domain: home.rvsteele.com, ip: 10.0.10.194, mac: "56:fa:43:ce:40:23", purpose: Fixed source for OPNsense API access}
+    - {host: tv, domain: home.rvsteele.com, ip: 10.0.20.134, mac: "84:90:0a:95:4b:a2", purpose: Rooted LG C3 management identity}
     - {host: jellyfin, ip: 10.0.40.10, mac: "bc:24:11:e3:04:90"}
     - {host: qbittorrent, ip: 10.0.40.11, mac: "bc:24:11:97:e7:68"}
     - {host: sonarr, ip: 10.0.40.12, mac: "bc:24:11:ff:94:4c"}
@@ -65,17 +66,19 @@ internal_records:
     - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
+    - {name: tv.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy to rooted LG TV, status: confirmed}
     - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
     - {name: dvd.home.rvsteele.com, type: A, value: absent, purpose: Future Caddy proxy, status: planned}
     - {name: ntop.home.rvsteele.com, type: A, value: absent, purpose: Obsolete ntopng UI, status: confirmed, state_note: Cleanup complete in DNS}
 
 adguard_rewrites:
   status: confirmed
-  verified_as_of: "2026-11-01"
+  verified_as_of: "2026-11-02"
   records:
     - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
     - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
     - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
+    - {name: tv.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the rooted TV UI through Caddy for clients using AdGuard}
 
 client_dns_distribution:
   status: confirmed

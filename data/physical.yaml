@@ -66,8 +66,11 @@ clients:
     status: confirmed
     model: LG C3 OLED
     size_inches: 77
+    rooted: true
+    network: {vlan: iot, ip: 10.0.20.134, mac: "84:90:0a:95:4b:a2"}
     roles:
       - Jellyfin client
+      - Rooted web management endpoint
       - planned DVD Watch Now client
 
 physical_topology:

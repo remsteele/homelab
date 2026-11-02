@@ -62,10 +62,13 @@ connections:
   - {id: caddy-adguard, status: confirmed, kind: reverse-proxy, from: caddy, to: adguard, protocol: HTTP, port: 80}
   - {id: caddy-homepage, status: confirmed, kind: reverse-proxy, from: caddy, to: homepage, protocol: HTTP, port: 3000}
   - {id: caddy-uptime-kuma, status: confirmed, kind: reverse-proxy, from: caddy, to: uptime-kuma, protocol: HTTP-WebSocket, port: 3001}
+  - {id: caddy-lg-tv, status: confirmed, kind: reverse-proxy, from: caddy, to: lg-c3, protocol: HTTP, port: 8080}
   - {id: caddy-pve, status: confirmed, kind: reverse-proxy, from: caddy, to: pve, protocol: HTTPS, port: 8006, tls_verify: false}
   - {id: caddy-router, status: needs_verification, kind: reverse-proxy, from: caddy, to: router, protocol: HTTPS, port: 443, tls_verify: false}
   - {id: caddy-eap650, status: needs_verification, kind: reverse-proxy, from: caddy, to: eap650, protocol: HTTPS, port: 443, tls_verify: false}
   - {id: caddy-dvdstream, status: planned, kind: reverse-proxy, from: caddy, to: dvdstream, protocol: HTTP, port: unassigned}
+
+  - {id: macbook-lg-tv-ssh, status: needs_verification, kind: management, from: user-mac, to: lg-c3, protocol: SSH, port: 22, note: Client alias exists; TV does not yet accept the homelab public key.}
 
   - {id: sonarr-qbittorrent, status: confirmed, kind: application-api, from: sonarr, to: qbittorrent, protocol: HTTP, port: 8080, category: tv}
   - {id: radarr-qbittorrent, status: confirmed, kind: application-api, from: radarr, to: qbittorrent, protocol: HTTP, port: 8080, category: movies}

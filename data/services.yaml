@@ -113,9 +113,9 @@ services:
       - "Zone / DNS / Edit on rvsteele.com"
       - "Zone / Zone / Read on rvsteele.com"
     exact_config_status: confirmed
-    exact_config_verified_as_of: "2026-11-01"
+    exact_config_verified_as_of: "2026-11-02"
     validation: Valid configuration; formatting warning at line 12
-    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr, adguard, homepage, uptime-kuma]
+    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr, adguard, homepage, uptime-kuma, lg-tv-root-ui]
     absent_planned_backends: [dvdstream]
 
   - id: adguard-home
@@ -539,6 +539,26 @@ services:
       - Test LG C3 direct MPEG-2/AC3 HLS compatibility
       - Select application port and implementation
       - Add Unbound override and Caddy backend
+
+  - id: lg-tv-root-ui
+    status: confirmed
+    host: lg-c3
+    role: Rooted LG TV web management interface
+    listen:
+      - {address: 10.0.20.134, protocol: HTTP, port: 8080}
+      - {address: 10.0.20.134, protocol: SSH, port: 22}
+      - {address: 10.0.20.134, protocol: Telnet, port: 23}
+    url: https://tv.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.20.134:8080
+    certificate: Publicly trusted certificate obtained through Caddy Cloudflare DNS-01
+    direct_wan_exposure: false
+    authentication:
+      web: needs_verification
+      ssh: Dropbear offers publickey and password; homelab Ed25519 key was rejected on 2026-11-02.
+    security_warning: Telnet TCP 23 is listening and is unencrypted; disable it after verified SSH recovery access exists.
+    health_as_of_2026_11_02: {backend_http_status: 200, https_status: 200, tls_verification: passed}
+    runbook: runbooks/lg-tv.md
 
   - id: zenarmor
     status: confirmed

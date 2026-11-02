@@ -105,6 +105,16 @@ homepage_and_monitoring:
   reason: HOME currently has broad outbound access, including the monitor targets; same-HOME traffic does not traverse OPNsense.
   constraint: Do not move Uptime Kuma to SERVERS or add a broad SERVERS-to-management exception merely for monitoring.
 
+rooted_tv_management:
+  status: confirmed
+  source: caddy
+  source_address: 10.0.10.3
+  destination: 10.0.20.134
+  protocol: TCP
+  destination_port: 8080
+  current_policy: Allowed by TEMP HOME allow all; return traffic is stateful.
+  future_constraint: Preserve this exact flow when HOME policy is tightened; do not add a broad IOT-to-HOME exception.
+
 nat:
   port_forwards:
     - id: terraria
@@ -141,4 +151,5 @@ explicit_non_exposures:
   - {service: AdGuard Home, ports: "53/80", wan_exposure: prohibited, reason: Internal DNS and administration only}
   - {service: Homepage, port: 3000, wan_exposure: prohibited, reason: Internal dashboard behind Caddy}
   - {service: Uptime Kuma, port: 3001, wan_exposure: prohibited, reason: Internal monitoring UI behind Caddy}
+  - {service: Rooted LG TV management, ports: "22/23/8080", wan_exposure: prohibited, reason: Internal IOT device management only}
 

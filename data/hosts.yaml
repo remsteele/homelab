@@ -297,6 +297,24 @@ hosts:
     addresses:
       - {ip: 10.0.10.111, vlan: home, prefix: 24, status: confirmed}
 
+  - id: lg-c3
+    status: confirmed
+    hostname: tv
+    fqdn: tv.home.rvsteele.com
+    kind: network-client
+    role: Rooted LG C3 OLED television and Jellyfin client
+    addresses:
+      - {ip: 10.0.20.134, vlan: iot, prefix: 24, status: confirmed}
+    interfaces:
+      - {vlan: iot, mac: "84:90:0a:95:4b:a2", addressing: dhcp-reservation}
+    management_urls:
+      - https://tv.home.rvsteele.com
+      - http://10.0.20.134:8080
+    management_access:
+      web: {protocol: HTTP, port: 8080, reverse_proxy: caddy}
+      ssh: {protocol: SSH, port: 22, server: dropbear_2022.83, user: root, authentication: publickey-or-password, homelab_key: not-yet-accepted}
+      telnet: {protocol: Telnet, port: 23, status: confirmed, listening: true, risk: Unencrypted management service}
+
 historical_hosts:
   - id: dvdstream-vm
     status: historical

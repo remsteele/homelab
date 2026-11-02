@@ -19,6 +19,7 @@ into this repository, a VM/container, a snapshot, or a prompt.
 | AdGuard Home | 10.0.10.4 | `root` | Root key-only; passwords enabled globally |
 | Homepage | 10.0.10.5 | `root` | Root key-only; passwords enabled globally |
 | Uptime Kuma | 10.0.10.6 | `root` | Root key-only; passwords enabled globally |
+| Rooted LG TV | 10.0.20.134 | `root` | Dropbear offers key/password; homelab key is not yet accepted; Telnet 23 also listens |
 | Jellyfin | 10.0.40.10 | `root` | Root key-only; passwords enabled globally |
 | qBittorrent | 10.0.40.11 | `root` | Root key-only; passwords enabled globally |
 | Sonarr | 10.0.40.12 | `root` | Root key-only; passwords enabled globally |
@@ -54,6 +55,7 @@ authentication, and `IdentitiesOnly yes`; the file is mode `0600`.
 | `ssh adguard` | `10.0.10.4` | `root` | `adguard.home.rvsteele.com` |
 | `ssh homepage` | `10.0.10.5` | `root` | `homepage.home.rvsteele.com` |
 | `ssh uptime` | `10.0.10.6` | `root` | `uptime-kuma`, `uptime.home.rvsteele.com` |
+| `ssh tv` | `10.0.20.134` | `root` | `tv.home.rvsteele.com`; password fallback enabled until key is installed |
 | `ssh jellyfin` | `10.0.40.10` | `root` | `jellyfin.home.rvsteele.com` |
 | `ssh qbittorrent` | `10.0.40.11` | `root` | `qbit`, `qbittorrent.home.rvsteele.com` |
 | `ssh sonarr` | `10.0.40.12` | `root` | `sonarr.home.rvsteele.com` |

@@ -1,0 +1,30 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: Direct network probes and Caddy validation
+
+device:
+  id: lg-c3
+  address: 10.0.20.134
+  vlan: iot
+  mac: "84:90:0a:95:4b:a2"
+
+listeners:
+  - {protocol: SSH, port: 22, server: dropbear_2022.83, status: open}
+  - {protocol: Telnet, port: 23, status: open, warning: unencrypted}
+  - {protocol: HTTP, port: 8080, status: open}
+
+reverse_proxy:
+  name: tv.home.rvsteele.com
+  proxy: 10.0.10.3
+  backend: http://10.0.20.134:8080
+  caddy_validation: passed
+  certificate_issuer: Let's Encrypt through Cloudflare DNS-01
+  https_status: 200
+
+ssh:
+  client_alias: tv
+  user: root
+  port: 22
+  authentication_offered: [publickey, password]
+  homelab_key_result: rejected

@@ -24,3 +24,4 @@ Generated from `data/hosts.yaml` by `tools/generate_docs.rb`. Do not edit by han
 | prowlarr | lxc-unprivileged | 107 | running | 10.0.40.14 | servers | bc:24:11:3b:00:b7 | confirmed |
 | dvdstream | lxc-privileged | 108 | stopped | 10.0.40.15 | servers | bc:24:11:93:c9:3f | confirmed |
 | eap650 | network-appliance |  | — | 10.0.10.111 | home | — | confirmed |
+| lg-c3 | network-client |  | — | 10.0.20.134 | iot | 84:90:0a:95:4b:a2 | confirmed |

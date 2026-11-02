@@ -127,6 +127,7 @@ ssh_policy:
     - {host: homepage, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true, host_key_fingerprint: "SHA256:nnaSK+7YGKfY52KquTOigj6PukIrN8hX52YgpjakpiA"}
     - {host: uptime-kuma, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true, host_key_fingerprint: "SHA256:nU7Lr2UvyOO+22avu2aD3tHJrgfadApwGhx/p4gjzO0"}
     - {host: games, user: remington, key_auth: confirmed, advertised_auth_methods: "publickey,password"}
+    - {host: lg-c3, user: root, key_auth: needs_verification, advertised_auth_methods: "publickey,password", server: dropbear_2022.83, client_alias: tv, warning: Telnet TCP 23 also listens unencrypted}
     - {host: dvdstream, user: root, key_auth: user-reported, verification: unavailable-while-powered-off}
   not_ssh_managed:
     - {host: eap650, result: TCP 22 connection refused}
