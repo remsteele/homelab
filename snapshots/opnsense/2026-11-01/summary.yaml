@@ -20,6 +20,21 @@ ssh:
   root_login: user-confirmed-disabled
   sudo_without_password: false
 
+api:
+  native_json_api: available
+  authentication: Per-local-user API key and one-time-download secret
+  credentials_provisioned_for_agent: false
+  direct_tls:
+    subject: OPNsense.internal
+    issuer: self-signed
+    subject_alternative_names: [OPNsense.internal]
+    expires: "2027-11-01"
+  installed_acl_observations:
+    dnsmasq: {privilege_id: page-services-dnsforwarder, name: "Services: Dnsmasq DNS/DHCP: Settings", match: "api/dnsmasq/*", read_write_combined: true}
+    unbound_overrides: {privilege_id: page-services-dnsresolver-overrides, name: "Services: Unbound DNS: Edit Host and Domain Override", apply_requires_broader_scope: true}
+    unbound_all: {privilege_id: page-services-unbound, name: "Services: Unbound", match: "api/unbound/*"}
+    firewall_rules: {privilege_id: page-filter-api, name: "Firewall: Rules [new]", match: "api/firewall/filter/*", read_write_combined: true}
+
 interfaces:
   wan:
     device: vtnet0

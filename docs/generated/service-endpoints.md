@@ -4,6 +4,7 @@ Generated from `data/services.yaml` by `tools/generate_docs.rb`. Do not edit by 
 
 | Service | Host | Listener | User URL / public endpoint | Availability | State |
 |---|---|---|---|---|---|
+| opnsense-api | router | HTTPS 10.0.10.1:443 | — | — | confirmed |
 | opnsense-webgui | router | HTTPS 10.0.10.1:443 | https://router.home.rvsteele.com<br>https://10.0.10.1 | — | confirmed |
 | proxmox-webgui | pve | HTTPS 10.0.10.2:8006 | https://pve.home.rvsteele.com<br>https://10.0.10.2:8006 | — | confirmed |
 | eap-webui | eap650 | HTTPS 10.0.10.111:443 | https://ap.home.rvsteele.com<br>https://10.0.10.111 | — | confirmed |

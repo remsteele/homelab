@@ -15,6 +15,17 @@ principles:
     rule: Broad read visibility, exact proposed diffs, explicit approval before privileged writes, verification after changes, and an audit record.
 
 secret_locations:
+  - id: opnsense-agent-api-keypair
+    status: planned
+    host: user-mac
+    location: macOS Keychain generic passwords
+    service_names: [homelab-opnsense-api-key, homelab-opnsense-api-secret]
+    account: homelab-agent
+    purpose: Narrow OPNsense API access from the owner's MacBook
+    required_scope_initial: ["Services: Dnsmasq DNS/DHCP: Settings"]
+    source_network_constraint: Fixed MacBook HOME address /32
+    rotation: Generate a replacement key, test GET access, then revoke the old key in OPNsense.
+    value_policy: excluded; never store either value in Git, snapshots, chat, or shell scripts
   - id: caddy-cloudflare-token
     status: confirmed
     host: caddy

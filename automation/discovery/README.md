@@ -1,9 +1,10 @@
 # Discovery guidance
 
 Discovery is intentionally read-only. Collect narrow evidence, inspect it for
-secrets, then place it in a dated snapshot directory. Do not automate writes to
-OPNsense, Proxmox, or service hosts from this directory until an explicit,
-approval-gated management design exists.
+secrets, then place it in a dated snapshot directory. OPNsense API access and
+its approval boundary are designed in `runbooks/opnsense-api.md`; do not
+automate writes from this directory merely because credentials exist. Proxmox
+and service-host write automation still require an explicit management design.
 
 ## Proxmox collection checklist
 

@@ -37,6 +37,8 @@ under `snapshots/`; a snapshot is evidence, not automatically desired state.
 - `docs/topology.md` — readable topology and policy explanation
 - `runbooks/` — recovery and operating procedures
 - `runbooks/service-onboarding.md` — checklist for adding a host, DNS, Caddy, and firewall policy
+- `runbooks/opnsense-api.md` — least-privilege OPNsense API provisioning and change protocol
+- `AGENTS.md` — task router and safety rules for agents working in this repository
 - `snapshots/` — dated, sanitized discovery output
 - `automation/discovery/` — safe collection guidance
 - `tools/validate.rb` — syntax, reference, address, and secret-safety checks

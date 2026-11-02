@@ -1,5 +1,27 @@
 schema_version: 1
 plans:
+  - id: opnsense-api-access
+    status: proposed
+    goal: Give the homelab agent narrowly scoped, auditable OPNsense machine access without administrator or privileged SSH credentials.
+    installed_capability:
+      version: OPNsense 26.7.5
+      authentication: Per-user API key and one-time-download secret over HTTP Basic authentication
+      verified_modules: [dnsmasq, unbound, firewall-filter]
+    recommended_phase_one:
+      account: homelab-agent
+      group: homelab-api-dns
+      source_network: Fixed MacBook HOME address /32
+      privileges: ["Services: Dnsmasq DNS/DHCP: Settings"]
+      shell: /sbin/nologin
+      ordinary_password_login: scrambled-disabled
+      credential_storage: macOS Keychain outside this repository
+    limitations:
+      - Dnsmasq and modern firewall ACLs combine read and write endpoints; they are not technically read-only.
+      - Applying Unbound overrides requires the broad Services: Unbound API scope on the installed ACL.
+      - The modern firewall API must not be assumed to manage legacy rules.
+    expansion_gate: Add Unbound or Firewall Rules [new] privileges only after accepting their wider mutation scope.
+    runbook: runbooks/opnsense-api.md
+
   - id: adguard-network-rollout
     status: planned
     goal: Move client DNS to the deployed AdGuard Home resolver without breaking segmentation or qBittorrent's fail-closed policy.

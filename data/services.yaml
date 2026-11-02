@@ -1,5 +1,22 @@
 schema_version: 1
 services:
+  - id: opnsense-api
+    status: confirmed
+    host: router
+    role: Native JSON API for scoped machine administration
+    version: OPNsense 26.7.5
+    listen:
+      - {address: 10.0.10.1, protocol: HTTPS, port: 443}
+    url_pattern: https://OPNsense.internal/api/<module>/<controller>/<command>
+    authentication: Per-local-user API key and one-time-download secret using HTTP Basic authentication
+    tls:
+      direct_certificate: Self-signed for OPNsense.internal
+      routine_policy: Pin/verify the exported public certificate and force 10.0.10.1; do not use insecure mode.
+    confirmed_modules: [dnsmasq, unbound, firewall]
+    credential_provisioning: planned
+    authorization_warning: Installed module ACLs commonly combine GET and POST endpoints under one privilege.
+    runbook: runbooks/opnsense-api.md
+
   - id: opnsense-webgui
     status: confirmed
     host: router
