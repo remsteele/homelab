@@ -51,6 +51,15 @@ secret_locations:
     created_or_modified: "2026-11-01"
     storage: macOS Keychain
     value_policy: The private key remains on the MacBook and outside this repository; only the public key is installed remotely.
+  - id: adguard-admin-password
+    status: confirmed
+    host: user-mac
+    location: macOS Keychain generic password
+    service_name: adguard.home.rvsteele.com
+    account: remington
+    purpose: AdGuard Home web administration
+    remote_storage: AdGuard stores only its password hash in /opt/AdGuardHome/AdGuardHome.yaml.
+    value_policy: excluded
   - id: terraria-server-secret
     status: confirmed
     host: games
@@ -80,6 +89,7 @@ ssh_policy:
     - {host: sonarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: radarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: prowlarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: adguard, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: games, user: remington, key_auth: confirmed, advertised_auth_methods: "publickey,password"}
     - {host: dvdstream, user: root, key_auth: user-reported, verification: unavailable-while-powered-off}
   not_ssh_managed:
@@ -106,6 +116,7 @@ service_exposure:
     - sonarr
     - radarr
     - prowlarr
+    - adguard-home
     - flaresolverr
     - dvd-watch-now
 

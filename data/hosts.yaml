@@ -131,6 +131,30 @@ hosts:
       - {ip: 10.0.10.3, vlan: home, prefix: 24, status: confirmed}
     mounts: []
 
+  - id: adguard
+    status: confirmed
+    hostname: adguard
+    fqdn: adguard.home.rvsteele.com
+    kind: lxc-unprivileged
+    vmid: 109
+    os: Debian 13
+    role: AdGuard Home filtering DNS resolver
+    template: debian-13-standard_13.1-2_amd64.tar.zst
+    resources: {vcpu: 1, memory_mib: 512, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
+    power_state: running
+    power_state_as_of: "2026-11-01"
+    interfaces:
+      - {name: eth0, bridge: vmbr1, vlan: home, mac: "bc:24:11:ad:00:09", addressing: static, firewall: true}
+    addresses:
+      - {ip: 10.0.10.4, vlan: home, prefix: 24, status: confirmed}
+    gateway: 10.0.10.1
+    dns: {nameserver: 10.0.10.1, search_domain: home.rvsteele.com, status: confirmed}
+    onboot: true
+    mounts: []
+    notes:
+      - The static address is configured in the LXC definition, not leased by DHCP.
+      - The container has no media mount and does not run DHCP.
+
   - id: sonarr
     status: confirmed
     hostname: sonarr

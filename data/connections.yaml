@@ -18,6 +18,30 @@ connections:
     protocol: TCP/UDP
     port: 53
     service: Unbound
+  - id: adguard-client-dns
+    status: confirmed
+    kind: infrastructure-staged
+    from: HOME-and-explicit-test-clients
+    to: adguard
+    protocol: TCP/UDP
+    port: 53
+    service: AdGuard Home
+    note: Other VLANs need explicit pre-block firewall rules before DHCP can point clients here.
+  - id: adguard-public-upstream
+    status: confirmed
+    kind: dns-upstream
+    from: adguard
+    to: cloudflare-dns.com
+    protocol: DNS-over-HTTPS
+    port: 443
+  - id: adguard-local-upstream
+    status: confirmed
+    kind: dns-upstream
+    from: adguard
+    to: router
+    protocol: TCP/UDP
+    port: 53
+    scope: home.rvsteele.com and private PTR lookups
   - id: dhcp
     status: confirmed
     kind: infrastructure
@@ -35,6 +59,7 @@ connections:
   - {id: caddy-sonarr, status: confirmed, kind: reverse-proxy, from: caddy, to: sonarr, protocol: HTTP, port: 8989}
   - {id: caddy-radarr, status: confirmed, kind: reverse-proxy, from: caddy, to: radarr, protocol: HTTP, port: 7878}
   - {id: caddy-prowlarr, status: confirmed, kind: reverse-proxy, from: caddy, to: prowlarr, protocol: HTTP, port: 9696}
+  - {id: caddy-adguard, status: confirmed, kind: reverse-proxy, from: caddy, to: adguard, protocol: HTTP, port: 80}
   - {id: caddy-pve, status: confirmed, kind: reverse-proxy, from: caddy, to: pve, protocol: HTTPS, port: 8006, tls_verify: false}
   - {id: caddy-router, status: needs_verification, kind: reverse-proxy, from: caddy, to: router, protocol: HTTPS, port: 443, tls_verify: false}
   - {id: caddy-eap650, status: needs_verification, kind: reverse-proxy, from: caddy, to: eap650, protocol: HTTPS, port: 443, tls_verify: false}

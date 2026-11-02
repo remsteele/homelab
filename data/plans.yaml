@@ -1,5 +1,19 @@
 schema_version: 1
 plans:
+  - id: adguard-network-rollout
+    status: planned
+    goal: Move client DNS to the deployed AdGuard Home resolver without breaking segmentation or qBittorrent's fail-closed policy.
+    deployed_foundation:
+      - CT 109 at 10.0.10.4 is running AdGuard Home v0.107.79.
+      - Caddy serves https://adguard.home.rvsteele.com and proxies to 10.0.10.4:80.
+      - Public, local, filtered, reboot-persistence, and HTTPS tests pass.
+    remaining:
+      - Add adguard.home.rvsteele.com -> 10.0.10.3 to OPNsense Unbound.
+      - Add TCP/UDP 53 passes to 10.0.10.4 above LOCAL_NETS blocks on IOT, GUEST, SERVERS, and DMZ.
+      - Set DHCP DNS to 10.0.10.4 one VLAN at a time and renew test clients.
+      - Keep qBittorrent on OPNsense DNS until its host-specific rule is deliberately changed and leak-tested.
+      - Decide whether DNS high availability is worth a second filtering resolver.
+
   - id: dvd-watch-now
     status: planned
     goal: Select a physical DVD title in a local web UI and stream it to the LG C3.

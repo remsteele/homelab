@@ -32,6 +32,7 @@ guests:
   - {vmid: 106, name: radarr, type: lxc-unprivileged, state: running, cores: 2, memory_mib: 1024, disk_gib: 12, onboot: true}
   - {vmid: 107, name: prowlarr, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 1024, disk_gib: 8, onboot: true}
   - {vmid: 108, name: dvdstream, type: lxc-privileged, state: stopped, cores: 4, memory_mib: 2048, disk_gib: 16, onboot: true}
+  - {vmid: 109, name: adguard, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 512, disk_gib: 8, onboot: true, address: 10.0.10.4/24, vlan: 10}
 
 storage:
   local_percent_used: 7.45

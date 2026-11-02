@@ -8,6 +8,7 @@ Generated from `data/services.yaml` by `tools/generate_docs.rb`. Do not edit by 
 | proxmox-webgui | pve | HTTPS 10.0.10.2:8006 | https://pve.home.rvsteele.com<br>https://10.0.10.2:8006 | — | confirmed |
 | eap-webui | eap650 | HTTPS 10.0.10.111:443 | https://ap.home.rvsteele.com<br>https://10.0.10.111 | — | confirmed |
 | caddy | caddy |  | — | — | confirmed |
+| adguard-home | adguard | TCP/UDP 10.0.10.4:53<br>HTTP 10.0.10.4:80 | https://adguard.home.rvsteele.com | — | confirmed |
 | jellyfin | jellyfin | HTTP 10.0.40.10:8096 | https://jellyfin.home.rvsteele.com | — | confirmed |
 | qbittorrent | qbittorrent | HTTP 10.0.40.11:8080 | https://qbittorrent.home.rvsteele.com | — | confirmed |
 | proton-wireguard | qbittorrent |  | — | — | confirmed |

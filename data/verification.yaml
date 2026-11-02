@@ -1,5 +1,9 @@
 schema_version: 1
 checks:
+  - {id: adguard-service, priority: high, status: confirmed, target: adguard, evidence: AdGuard Home v0.107.79 enabled/active after CT 109 reboot; TCP/UDP 53 and HTTP 80 listening on 10.0.10.4 on 2026-11-01}
+  - {id: adguard-resolution, priority: high, status: confirmed, target: adguard, evidence: Public DoH, conditional local lookup, default-list block, and Caddy rewrite queries passed on 2026-11-01}
+  - {id: adguard-https, priority: high, status: confirmed, target: caddy, evidence: Caddy config validated; HTTPS returned 302 through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
+  - {id: adguard-network-rollout, priority: high, status: needs_verification, target: [router, adguard], evidence: Apply and export Unbound override, per-VLAN DNS passes, and DHCP DNS options; test one client per VLAN}
   - {id: pve-network-config, priority: high, status: confirmed, target: pve, evidence: Read-only SSH capture of interfaces, addresses, routes, and bridge VLANs on 2026-11-01}
   - {id: opnsense-firewall-export, priority: high, status: needs_verification, target: router, evidence: Sanitized ordered rules, aliases, floating rules, and generated NAT associations}
   - {id: opnsense-nat-export, priority: high, status: needs_verification, target: router, evidence: Port-forward and outbound-NAT export including rule order}

@@ -8,6 +8,15 @@ architecture:
   resolver:
     implementation: OPNsense Unbound
     listen_port: 53
+    role: Local authoritative source for home.rvsteele.com and current client resolver during the staged AdGuard rollout.
+  filtering_resolver:
+    implementation: AdGuard Home v0.107.79
+    address: 10.0.10.4
+    listen_port: 53
+    public_upstream: https://cloudflare-dns.com/dns-query
+    local_domain_upstream: 10.0.10.1
+    private_ptr_upstream: 10.0.10.1
+    client_rollout: staged-not-yet-distributed-by-dhcp
   dnsmasq_dns:
     listen_port: 53053
   internal_record_policy: Create static names in Unbound DNS Host Overrides.
@@ -49,9 +58,22 @@ internal_records:
     - {name: sonarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
+    - {name: adguard.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: OPNsense Unbound returned no A answer on 2026-11-01; add the override before or with client rollout}
     - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
     - {name: dvd.home.rvsteele.com, type: A, value: absent, purpose: Future Caddy proxy, status: planned}
     - {name: ntop.home.rvsteele.com, type: A, value: absent, purpose: Obsolete ntopng UI, status: confirmed, state_note: Cleanup complete in DNS}
+
+adguard_rewrites:
+  status: confirmed
+  verified_as_of: "2026-11-01"
+  records:
+    - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
+
+client_dns_distribution:
+  status: confirmed
+  current: OPNsense DHCP still distributes the firewall/resolver address for each VLAN; the network-wide AdGuard cutover has not been applied.
+  desired_after_rollout: Distribute only 10.0.10.4 when AdGuard availability and per-VLAN firewall rules are accepted.
+  availability_warning: A single AdGuard instance is a DNS single point of failure; adding 10.0.10.1 as a secondary lets clients bypass filtering.
 
 public_records:
   - name: terraria.rvsteele.com

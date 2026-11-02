@@ -45,6 +45,12 @@ hosts:
   - id: dvdstream
     ssh: {account: root, key_status: user-reported-not-live-verified}
     state: stopped
+  - id: adguard
+    os: Debian 13
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: AdGuardHome, version: v0.107.79, enabled: true, active: true, reboot_verified: true}
+    listeners: [22/tcp, 53/tcp, 53/udp, 80/tcp]
+    address: 10.0.10.4/24
   - id: eap650
     ssh: {state: unavailable, reason: TCP 22 connection refused}
 
@@ -57,3 +63,4 @@ https_health:
   sonarr: 302
   radarr: 302
   prowlarr: 302
+  adguard: 302

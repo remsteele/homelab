@@ -1,5 +1,13 @@
 schema_version: 1
 issues:
+  - id: adguard-network-rollout-incomplete
+    status: confirmed
+    severity: medium
+    affects: [adguard, router, dns]
+    symptom: AdGuard Home is healthy, but OPNsense DHCP still distributes the existing resolver and non-HOME VLAN policies allow DNS only to This Firewall.
+    impact: Most clients do not yet use filtering, and the AdGuard UI name has no A answer from OPNsense Unbound.
+    action: Apply the firewall, DHCP DNS, and Unbound override steps in runbooks/adguard-home.md; preserve the qBittorrent fail-closed exception.
+
   - id: media-disk-pending-sectors
     status: confirmed
     severity: critical

@@ -83,8 +83,50 @@ services:
     exact_config_status: confirmed
     exact_config_verified_as_of: "2026-11-01"
     validation: Valid configuration; formatting warning at line 12
-    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr]
+    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr, adguard]
     absent_planned_backends: [dvdstream]
+
+  - id: adguard-home
+    status: confirmed
+    host: adguard
+    role: Network DNS filtering and encrypted public resolution
+    version: v0.107.79
+    install_source: Official AdGuard Home Linux amd64 release with published SHA-256 verified before extraction
+    install_path: /opt/AdGuardHome
+    config_path: /opt/AdGuardHome/AdGuardHome.yaml
+    systemd_unit: /etc/systemd/system/AdGuardHome.service
+    listen:
+      - {address: 10.0.10.4, protocol: TCP/UDP, port: 53, purpose: DNS}
+      - {address: 10.0.10.4, protocol: HTTP, port: 80, purpose: Caddy backend and direct administration}
+    url: https://adguard.home.rvsteele.com
+    reverse_proxy: caddy
+    proxy_backend: http://10.0.10.4:80
+    public_upstream:
+      endpoint: https://cloudflare-dns.com/dns-query
+      transport: DNS-over-HTTPS
+      bootstrap: [1.1.1.1, 1.0.0.1]
+    private_resolution:
+      conditional_domain: home.rvsteele.com
+      upstream: 10.0.10.1
+      private_ptr_upstream: 10.0.10.1
+      purpose: Preserve OPNsense Unbound host overrides and DHCP-derived local names.
+    filtering:
+      enabled: true
+      default_list: AdGuard DNS filter
+      verified_rule_count: 186512
+      rewrite: {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
+    authentication: Local AdGuard administrator account; password value excluded
+    runtime: {systemd_enabled: true, active: true, reboot_verified: true, verified_as_of: "2026-11-01"}
+    health_as_of_2026_11_01:
+      public_dns: confirmed
+      local_dns: confirmed
+      filtering: confirmed
+      https_root_status: 302
+      tls_certificate_verification: passed
+    rollout:
+      status: confirmed
+      current_client_dns: OPNsense Unbound remains distributed to existing clients.
+      remaining: OPNsense firewall, DHCP DNS, and Unbound host-override changes documented in runbooks/adguard-home.md.
 
   - id: jellyfin
     status: confirmed

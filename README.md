@@ -69,6 +69,8 @@ go into the structured files rather than being appended to that source dump.
 
 The urgent finding is the media HDD's 3,304 pending sectors. Back up
 irreplaceable data and plan replacement before treating that disk as reliable.
+AdGuard Home is deployed and verified, but its network-wide DHCP/firewall
+cutover is intentionally still staged; follow `runbooks/adguard-home.md`.
 The remaining highest-value checks are the exact OPNsense firewall/NAT order,
 the qBittorrent WireGuard leak test and boot race, a real backup/restore plan,
 SSH hardening on Proxmox, and the optical-drive SATA repair. The full actionable

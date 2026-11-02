@@ -54,6 +54,13 @@ different: its internal name points directly to `10.0.50.10`, while the public
 DNS-only Cloudflare A record follows the dynamic WAN address and OPNsense
 forwards TCP 7777.
 
+AdGuard Home is deployed in CT 109 at `10.0.10.4`. It filters client queries,
+uses Cloudflare DNS-over-HTTPS for public names, and sends
+`home.rvsteele.com` plus private reverse lookups to OPNsense Unbound. Its own
+UI name is rewritten to Caddy at `10.0.10.3`. Client DHCP distribution and the
+required non-HOME VLAN firewall exceptions remain staged, so OPNsense is still
+the resolver delivered to most clients.
+
 ## Media data path
 
 ```text

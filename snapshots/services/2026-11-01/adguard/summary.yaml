@@ -1,0 +1,41 @@
+snapshot_version: 1
+system: adguard
+collected_at: "2026-11-01"
+method: Live SSH, authenticated API health checks, DNS probes, and HTTPS probe
+sanitized: true
+
+container:
+  vmid: 109
+  type: lxc-unprivileged
+  os: Debian 13
+  resources: {cores: 1, memory_mib: 512, swap_mib: 512, root_disk_gib: 8}
+  network: {address: 10.0.10.4/24, gateway: 10.0.10.1, vlan: 10, bridge: vmbr1, mac: "bc:24:11:ad:00:09"}
+  onboot: true
+
+service:
+  name: AdGuardHome
+  version: v0.107.79
+  enabled: true
+  active: true
+  reboot_verified: true
+  listeners: [53/tcp, 53/udp, 80/tcp]
+
+resolver:
+  public_upstream: https://cloudflare-dns.com/dns-query
+  local_domain: home.rvsteele.com
+  local_upstream: 10.0.10.1
+  private_ptr_upstream: 10.0.10.1
+  filtering_enabled: true
+  default_filter_rules_observed: 186512
+  ui_rewrite: {name: adguard.home.rvsteele.com, value: 10.0.10.3}
+
+verification:
+  public_a: passed
+  public_aaaa: passed
+  local_a: passed
+  blocked_a: returned-0.0.0.0
+  caddy_https: {status: 302, certificate_verification: passed}
+
+secrets_excluded:
+  - Administrator password and password hash
+  - SSH private key
