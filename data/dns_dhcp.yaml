@@ -45,6 +45,11 @@ reservations:
     - {host: dvdstream, ip: 10.0.40.15, mac: "bc:24:11:93:c9:3f"}
     - {host: games, ip: 10.0.50.10, mac: "bc:24:11:90:be:0b"}
 
+planned_reservations:
+  status: planned
+  records:
+    - {host: adguard, domain: home.rvsteele.com, ip: 10.0.10.4, mac: "bc:24:11:ad:00:09", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
+
 internal_records:
   status: confirmed
   verified_as_of: "2026-11-01"

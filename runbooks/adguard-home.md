@@ -26,6 +26,23 @@ the current firewall/resolver addresses. HOME can reach `10.0.10.4`; other
 VLANs still allow DNS only to `This Firewall` and then block private networks.
 Consequently, this deployment does not yet filter most client traffic.
 
+## Dnsmasq host entry
+
+Add the container under **Services → Dnsmasq DNS & DHCP → Hosts** with:
+
+| Field | Value |
+|---|---|
+| Host | `adguard` |
+| Domain | `home.rvsteele.com` |
+| IP address | `10.0.10.4` |
+| Hardware address | `BC:24:11:AD:00:09` |
+| Description | `AdGuard Home` |
+
+CT 109 already has `10.0.10.4/24` statically configured, so this entry records
+its MAC/IP identity and reserves the address if DHCP is ever enabled; it does
+not assign the container's current address. The client-facing web name must
+still point to Caddy at `10.0.10.3`, not directly to this `.4` backend.
+
 ## OPNsense rollout
 
 1. Add an Unbound host override:

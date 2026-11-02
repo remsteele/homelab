@@ -36,6 +36,7 @@ under `snapshots/`; a snapshot is evidence, not automatically desired state.
 - `data/verification.yaml` — evidence backlog for unknown current state
 - `docs/topology.md` — readable topology and policy explanation
 - `runbooks/` — recovery and operating procedures
+- `runbooks/service-onboarding.md` — checklist for adding a host, DNS, Caddy, and firewall policy
 - `snapshots/` — dated, sanitized discovery output
 - `automation/discovery/` — safe collection guidance
 - `tools/validate.rb` — syntax, reference, address, and secret-safety checks
