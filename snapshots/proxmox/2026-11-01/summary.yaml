@@ -1,0 +1,72 @@
+snapshot_version: 1
+system: pve
+collected_at: "2026-11-01"
+method: Read-only SSH as root using the MacBook homelab Ed25519 key
+sanitized: true
+
+software:
+  proxmox_ve: 9.2.0
+  pve_manager: 9.2.2
+  kernel: 7.0.2-6-pve
+  base_os: Debian 13
+
+hardware:
+  vendor: Dell Inc.
+  model: XPS 8940
+  cpu: Intel Core i5-10600K
+  cpu_topology: {sockets: 1, cores: 6, threads_per_core: 2, logical_cpus: 12}
+  memory_gib: 31
+
+network:
+  vmbr0: {port: enp3s0f0, host_ip: none, state: up}
+  vmbr1: {port: enp3s0f1, vlan_aware: true, allowed: 2-4094, state: up}
+  management: {interface: vmbr1.10, address: 10.0.10.2/24, gateway: 10.0.10.1}
+
+guests:
+  - {vmid: 100, name: opnsense, type: qemu, state: running, cores: 2, memory_mib: 8192, disk_gib: 32}
+  - {vmid: 101, name: jellyfin, type: lxc-unprivileged, state: running, cores: 4, memory_mib: 4096, disk_gib: 32}
+  - {vmid: 102, name: qbittorrent, type: lxc-unprivileged, state: running, cores: 2, memory_mib: 2048, disk_gib: 16, nesting: true}
+  - {vmid: 103, name: games, type: qemu, state: running, cores: 4, memory_mib: 8192, disk_gib: 64}
+  - {vmid: 104, name: caddy, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 512, disk_gib: 8}
+  - {vmid: 105, name: sonarr, type: lxc-unprivileged, state: running, cores: 2, memory_mib: 1024, disk_gib: 12, onboot: true}
+  - {vmid: 106, name: radarr, type: lxc-unprivileged, state: running, cores: 2, memory_mib: 1024, disk_gib: 12, onboot: true}
+  - {vmid: 107, name: prowlarr, type: lxc-unprivileged, state: running, cores: 1, memory_mib: 1024, disk_gib: 8, onboot: true}
+  - {vmid: 108, name: dvdstream, type: lxc-privileged, state: stopped, cores: 4, memory_mib: 2048, disk_gib: 16, onboot: true}
+
+storage:
+  local_percent_used: 7.45
+  local_lvm_percent_used: 18.26
+  media_percent_used: 23.77
+  media_filesystem_uuid: 09678cd4-b5f7-4711-9283-e092bea2b46f
+  media_smart:
+    overall: PASSED
+    current_pending_sectors: 3304
+    reallocated_sectors: 0
+    offline_uncorrectable: 0
+    udma_crc_errors: 0
+    assessment: critical-replacement-recommended
+  nvme_smart:
+    overall: PASSED
+    percentage_used: 0
+    media_integrity_errors: 0
+
+operations:
+  proxmox_backup_job_count: 0
+  ups_service_detected: false
+
+firewall:
+  pve_firewall_status: disabled/running
+  rule_file_count: 0
+  guest_nic_firewall_flags: enabled
+  note: OPNsense is the active routed firewall; no Proxmox guest/host policy was discovered.
+
+ssh:
+  account: root
+  homelab_key_verified: true
+  permit_root_login: true
+  password_authentication: true
+  extra_authorized_key:
+    type: RSA-4096
+    comment: root@pve
+    fingerprint: SHA256:esvLKmQ2OSD+SuU4VnG9PiR9ePG7Y8ojdA15/u/znUs
+

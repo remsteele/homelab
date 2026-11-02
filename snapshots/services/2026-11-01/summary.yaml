@@ -1,0 +1,59 @@
+snapshot_version: 1
+collected_at: "2026-11-01"
+method: Read-only SSH and HTTPS health probes
+sanitized: true
+homelab_public_key_fingerprint: SHA256:KxOez4FB3HfcyKBI5GHXEHuhyqrP8LPxbX2NESIgdF0
+
+hosts:
+  - id: caddy
+    os: Debian 13.1
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: caddy, version: 2.11.6, enabled: true, active: true, config_valid: true}
+    listeners: [22/tcp, 80/tcp, 443/tcp, 443/udp, 2019/tcp-loopback]
+  - id: jellyfin
+    os: Debian 13.7
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: jellyfin, enabled: true, active: true}
+    listeners: [22/tcp, 8096/tcp, 7359/udp]
+    media_mount: {source: /dev/sda1, target: /media, mode: rw}
+  - id: qbittorrent
+    os: Debian 13.7
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {name: qbittorrent, version: 5.1.0, enabled: true, active: true}
+    wireguard: {interface: proton, enabled: true, active: true, endpoint: "146.70.195.82:51820", handshake_recent: true}
+    dns: {nameserver: 10.0.40.1, search: home.rvsteele.com}
+    home_return_route: 10.0.10.0/24 via 10.0.40.1 dev eth0
+  - id: sonarr
+    os: Debian 13.1
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {version: 4.0.20.3014, enabled: true, active: true, port: 8989}
+    media_mount: {source: /dev/sda1, target: /media, mode: rw}
+  - id: radarr
+    os: Debian 13.1
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {version: 6.4.4.10685, enabled: true, active: true, port: 7878}
+    media_mount: {source: /dev/sda1, target: /media, mode: rw}
+  - id: prowlarr
+    os: Debian 13.1
+    ssh: {account: root, key_verified: true, root_mode: publickey-only, global_password_authentication: true}
+    service: {version: 2.6.5.5623, enabled: true, active: true, port: 9696}
+    flaresolverr: {version: 3.5.2, enabled: true, active: true, address: "127.0.0.1:8191"}
+  - id: games
+    os: Debian 13.7
+    ssh: {account: remington, key_verified: true, advertised_authentication: [publickey, password]}
+    service: {name: terraria, version: 1.4.5.8, enabled: true, active: true, port: 7777}
+  - id: dvdstream
+    ssh: {account: root, key_status: user-reported-not-live-verified}
+    state: stopped
+  - id: eap650
+    ssh: {state: unavailable, reason: TCP 22 connection refused}
+
+https_health:
+  router: 200
+  pve: 200
+  ap: 200
+  jellyfin: 302
+  qbittorrent: 200
+  sonarr: 302
+  radarr: 302
+  prowlarr: 302

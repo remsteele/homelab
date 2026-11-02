@@ -110,11 +110,29 @@ special_routes:
       post_up: ip route replace 10.0.10.0/24 via 10.0.40.1 dev eth0
       post_down: ip route del 10.0.10.0/24 via 10.0.40.1 dev eth0 2>/dev/null || true
 
-historical_networks:
-  - status: historical
+untagged_networks:
+  - id: legacy-opnsense-lan
+    status: confirmed
+    interface: router/vtnet1
     subnet: 192.168.1.0/24
-    purpose: Temporary OPNsense/AP management network
-    cleanup_status: needs_verification
+    gateway: 192.168.1.1
+    ipv6_prefix: "2600:8801:8e00:1cf::/64"
+    router_ipv6: "2600:8801:8e00:1cf:be24:11ff:fe74:83af"
+    dhcp_range: 192.168.1.100-192.168.1.199
+    ipv6_router_advertisements: enabled
+    verified_as_of: "2026-11-01"
+    note: This temporary pre-VLAN LAN is still active on the same parent interface that carries the VLAN trunk.
+
+wan_observations:
+  - status: historical
+    observed_as_of: "2026-11-01"
+    interface: router/vtnet0
+    ipv4: 70.179.13.243/22
+    ipv4_gateway: 70.179.12.1
+    ipv6: "2600:8801:ff00:e00:8b0:e5f1:5790:6fdc/128"
+    warning: Point-in-time dynamic Cox addresses; do not use as desired fixed state.
+
+historical_networks:
   - status: historical
     address: 192.168.0.231
     host: games

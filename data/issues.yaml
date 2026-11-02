@@ -1,5 +1,56 @@
 schema_version: 1
 issues:
+  - id: media-disk-pending-sectors
+    status: confirmed
+    severity: critical
+    affects: [media-storage, jellyfin, qbittorrent, sonarr, radarr]
+    symptom: WDC media disk reports 3,304 Current_Pending_Sector despite SMART overall status PASSED.
+    evidence_as_of: "2026-11-01"
+    related_values: {reallocated: 0, offline_uncorrectable: 0, udma_crc_errors: 0, power_on_hours: 35750}
+    risk: Pending sectors may become unreadable and place the only media/download filesystem at risk.
+    action: Back up irreplaceable data immediately and plan disk replacement; do not trust the headline PASSED result.
+
+  - id: pve-root-password-ssh
+    status: confirmed
+    severity: high
+    affects: [pve]
+    symptom: Effective sshd policy reports PermitRootLogin yes and PasswordAuthentication yes.
+    evidence_as_of: "2026-11-01"
+    risk: Direct root password login is permitted on the hypervisor.
+    action: Proposed hardening is a named admin account plus public-key authentication, then disable root/password SSH after console recovery is verified.
+
+  - id: legacy-untagged-opnsense-lan
+    status: confirmed
+    severity: medium
+    affects: [router, network-segmentation]
+    symptom: vtnet1 still owns 192.168.1.1/24 with DHCP 192.168.1.100-199 and IPv6 router advertisements.
+    evidence_as_of: "2026-11-01"
+    action: Determine whether any device still depends on it, then plan removal if obsolete.
+
+  - id: debian-ssh-password-auth
+    status: confirmed
+    severity: medium
+    affects: [caddy, jellyfin, qbittorrent, sonarr, radarr, prowlarr]
+    symptom: Root is key-only, but effective PasswordAuthentication remains enabled for other accounts.
+    evidence_as_of: "2026-11-01"
+    action: Decide whether emergency password fallback remains desired; if not, disable password authentication after access testing.
+
+  - id: pve-extra-root-key
+    status: needs_verification
+    severity: medium
+    affects: [pve]
+    symptom: root authorized_keys contains an RSA-4096 root@pve key in addition to the new homelab Ed25519 key.
+    action: Confirm the key owner and remove it only if it is obsolete.
+
+  - id: proxmox-firewall-disabled
+    status: confirmed
+    severity: medium
+    affects: [pve, same-vlan-isolation]
+    symptom: pve-firewall reports disabled/running and no Proxmox firewall rule files exist, although every guest NIC has firewall=1.
+    evidence_as_of: "2026-11-01"
+    impact: OPNsense still filters routed inter-VLAN traffic, but it does not see same-VLAN VLAN 40 traffic.
+    action: Decide whether this is intentional; do not assume the per-guest firewall checkboxes currently enforce policy.
+
   - id: qbittorrent-wireguard-boot-race
     status: confirmed
     severity: high
@@ -27,6 +78,7 @@ issues:
     symptom: Login page and authentication work through Caddy, then UI goes blank; direct IP works.
     suspected_cause: Origin, Referer, Host, or forwarded-header incompatibility in the AP web app.
     proposed_fix: Override Host and strip X-Forwarded-Host, X-Forwarded-Proto, and X-Forwarded-For.
+    live_config_as_of_2026_11_01: Host override is applied; forwarded-header removals are not applied.
     next_evidence: Browser developer-tools network/console failures after login.
 
   - id: router-reverse-proxy-refresh
@@ -34,7 +86,7 @@ issues:
     severity: medium
     affects: [opnsense-webgui, caddy]
     symptom: Historical 400 Bad Request on refresh through router.home.rvsteele.com.
-    attempted_fix: HTTP/1.1 and Host-header workaround.
+    live_config_as_of_2026_11_01: HTTP/1.1 and Host-header workaround are applied and the root URL returns HTTP 200; refresh/deep-link behavior remains unverified.
 
   - id: optical-sata-instability
     status: confirmed
@@ -44,6 +96,7 @@ issues:
     cause: Physical drive/cable/adapter/connector path is the leading diagnosis.
     not_primary_causes: [website-code, HLS-packaging, FFmpeg, DVD-CSS]
     next_action: Clean shutdown, reseat connection, retest, then replace cable/adapter if errors recur.
+    current_operational_state: CT 108 is intentionally stopped because the DVD workflow was not working reliably.
     runbook: runbooks/dvdstream.md
 
   - id: dvdstream-systemd-257-warning

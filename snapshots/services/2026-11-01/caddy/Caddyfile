@@ -1,0 +1,81 @@
+# Sanitized read-only capture from CT 104 on 2026-11-01.
+# The token value is not present; Caddy reads it from a protected file.
+
+jellyfin.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.40.10:8096
+}
+
+qbittorrent.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.40.11:8080
+}
+
+pve.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy https://10.0.10.2:8006 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+    }
+}
+
+router.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy https://10.0.10.1 {
+        header_up Host {host}
+        transport http {
+            tls_insecure_skip_verify
+            versions 1.1
+        }
+    }
+}
+
+ap.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy https://10.0.10.111 {
+        transport http {
+            tls_insecure_skip_verify
+        }
+        header_up Host 10.0.10.111
+    }
+}
+
+sonarr.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.40.12:8989
+}
+
+radarr.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.40.13:7878
+}
+
+prowlarr.home.rvsteele.com {
+    tls {
+        dns cloudflare {file./etc/caddy/cloudflare_token}
+        resolvers 1.1.1.1
+    }
+    reverse_proxy 10.0.40.14:9696
+}

@@ -3,7 +3,8 @@ architecture:
   status: confirmed
   dhcp_server:
     implementation: OPNsense Dnsmasq
-    reservation_behavior: Reservations do not automatically imply the required Unbound host override.
+    domain: internal
+    reservation_behavior: Reservations generate Dnsmasq host entries on port 53053, but the Caddy-facing names still require independent Unbound overrides on port 53.
   resolver:
     implementation: OPNsense Unbound
     listen_port: 53
@@ -18,12 +19,15 @@ dhcp_pools:
   - {vlan: servers, start: 10.0.40.100, end: 10.0.40.199, status: confirmed}
   - {vlan: dmz, start: 10.0.50.100, end: 10.0.50.199, status: confirmed}
 
+untagged_dhcp_pools:
+  - {network: legacy-opnsense-lan, subnet: 192.168.1.0/24, start: 192.168.1.100, end: 192.168.1.199, status: confirmed}
+
 reservations:
-  status: needs_verification
-  note: The hosts are reported as reservations, but the exact live Dnsmasq export has not been captured.
-  expected:
+  status: confirmed
+  verified_as_of: "2026-11-01"
+  source: Live generated /usr/local/etc/dnsmasq.conf
+  records:
     - {host: caddy, ip: 10.0.10.3, mac: "bc:24:11:a9:2e:07"}
-    - {host: eap650, ip: 10.0.10.111, mac: needs_verification}
     - {host: jellyfin, ip: 10.0.40.10, mac: "bc:24:11:e3:04:90"}
     - {host: qbittorrent, ip: 10.0.40.11, mac: "bc:24:11:97:e7:68"}
     - {host: sonarr, ip: 10.0.40.12, mac: "bc:24:11:ff:94:4c"}
@@ -33,8 +37,9 @@ reservations:
     - {host: games, ip: 10.0.50.10, mac: "bc:24:11:90:be:0b"}
 
 internal_records:
-  status: needs_verification
-  note: Values below are reported intended/current mappings; capture the live Unbound override list to verify completeness.
+  status: confirmed
+  verified_as_of: "2026-11-01"
+  method: Direct A queries to Unbound at 10.0.10.1
   records:
     - {name: router.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
     - {name: pve.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
@@ -45,8 +50,8 @@ internal_records:
     - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
-    - {name: dvd.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Future Caddy proxy, status: planned}
-    - {name: ntop.home.rvsteele.com, type: A, value: unknown, purpose: Obsolete ntopng UI, status: needs_verification, action: Remove if present}
+    - {name: dvd.home.rvsteele.com, type: A, value: absent, purpose: Future Caddy proxy, status: planned}
+    - {name: ntop.home.rvsteele.com, type: A, value: absent, purpose: Obsolete ntopng UI, status: confirmed, state_note: Cleanup complete in DNS}
 
 public_records:
   - name: terraria.rvsteele.com
@@ -56,6 +61,10 @@ public_records:
     status: confirmed
     managed_by: OPNsense os-ddclient
     note: Do not delete; DDNS updates the existing record.
+    current_observation:
+      observed_as_of: "2026-11-01"
+      value: 70.179.13.243
+      matches_live_wan: true
 
 dynamic_dns:
   - id: terraria-cloudflare
@@ -73,6 +82,10 @@ dynamic_dns:
       - "Zone / DNS / Edit on rvsteele.com"
 
 historical_observations:
+  - status: historical
+    observed_as_of: "2026-11-01"
+    record: Cox WAN IPv4 was 70.179.13.243
+    warning: Dynamic observation; never treat as a fixed address.
   - status: historical
     record: Cox WAN IPv4 was 98.176.159.214
     warning: Dynamic observation; never treat as a fixed address.

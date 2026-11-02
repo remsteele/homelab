@@ -8,6 +8,16 @@ devices:
     visible_size_gib: 476.9
     purpose: Proxmox system and local LVM storage
     layout: ext4/LVM Proxmox installation
+    smart:
+      status: confirmed
+      observed_as_of: "2026-11-01"
+      overall: PASSED
+      critical_warning: "0x00"
+      percentage_used: 0
+      power_on_hours: 12357
+      data_written_tb: 15.6
+      media_integrity_errors: 0
+      error_log_entries: 0
   - id: media-hdd
     status: confirmed
     host: pve
@@ -18,9 +28,21 @@ devices:
     visible_size_gib: 931.5
     filesystem: ext4
     label: media
-    filesystem_uuid: needs_verification
+    filesystem_uuid: 09678cd4-b5f7-4711-9283-e092bea2b46f
     mountpoint: /mnt/media
-    smart_health: needs_verification
+    usage_as_of_2026_11_01: {used_gib: 218, available_gib: 652, percent: 26}
+    smart:
+      status: confirmed
+      observed_as_of: "2026-11-01"
+      overall: PASSED
+      assessment: critical-replacement-recommended
+      power_on_hours: 35750
+      reallocated_sectors: 0
+      current_pending_sectors: 3304
+      offline_uncorrectable: 0
+      udma_crc_errors: 0
+      last_short_test: Completed without error at 35005 power-on hours
+      warning: The overall PASSED flag does not negate the extremely high pending-sector count.
 
 media_bind:
   status: confirmed
@@ -83,7 +105,10 @@ hardlink_evidence:
 
 backup:
   strategy: needs_verification
-  proxmox_jobs: needs_verification
+  proxmox_jobs:
+    status: confirmed
+    count: 0
+    observed_as_of: "2026-11-01"
   offsite_copy: needs_verification
   restore_test: needs_verification
 

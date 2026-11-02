@@ -3,8 +3,13 @@ compute:
   - id: pve-machine
     status: confirmed
     role: Proxmox bare-metal host
-    cpu: Intel Core i5-10600
+    manufacturer: Dell Inc.
+    model: XPS 8940
+    cpu: Intel Core i5-10600K
+    cpu_topology: {sockets: 1, cores_per_socket: 6, threads_per_core: 2, logical_cpus: 12}
     memory_gib: 32
+    firmware: {version: "2.1.1", date: "2021-06-15"}
+    correction: Live discovery showed an i5-10600K, not the previously reported non-K i5-10600.
     nics:
       - id: wan-i350
         interface: enp3s0f0

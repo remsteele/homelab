@@ -6,6 +6,10 @@ hosts:
     fqdn: pve.home.rvsteele.com
     kind: bare-metal
     role: Proxmox VE hypervisor
+    os: Debian 13 with Proxmox VE 9.2.2
+    resources: {vcpu_threads: 12, memory_gib: 32, root_disk_gib: 96}
+    power_state: running
+    power_state_as_of: "2026-11-01"
     addresses:
       - {ip: 10.0.10.2, vlan: home, prefix: 24, status: confirmed}
     management_urls:
@@ -27,12 +31,14 @@ hosts:
     os: OPNsense
     resources:
       memory_mib: 8192
-      vcpu: needs_verification
+      vcpu: 2
       root_disk_gib: 32
       root_disk_layout: ZFS stripe on one VirtIO disk
     interfaces:
-      - {name: vtnet0, bridge: vmbr0, role: WAN, addressing: dhcp-ipv4-and-configured-dhcpv6}
-      - {name: vtnet1, bridge: vmbr1, role: LAN-trunk, vlans: "10,20,30,40,50"}
+      - {name: vtnet0, bridge: vmbr0, role: WAN, addressing: dhcp-ipv4-and-configured-dhcpv6, mac: "bc:24:11:11:f3:bd"}
+      - {name: vtnet1, bridge: vmbr1, role: LAN-trunk-and-legacy-untagged-lan, vlans: "10,20,30,40,50", mac: "bc:24:11:74:83:af"}
+    power_state: running
+    power_state_as_of: "2026-11-01"
     addresses:
       - {ip: 10.0.10.1, vlan: home, prefix: 24, status: confirmed}
       - {ip: 10.0.20.1, vlan: iot, prefix: 24, status: confirmed}
@@ -54,7 +60,9 @@ hosts:
     vmid: 101
     os: Debian
     role: Jellyfin media server
-    resources: {vcpu: 4, memory_mib: 4096, swap_mib: 512, root_storage: local-lvm}
+    resources: {vcpu: 4, memory_mib: 4096, swap_mib: 512, root_disk_gib: 32, root_storage: local-lvm}
+    power_state: running
+    power_state_as_of: "2026-11-01"
     interfaces:
       - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:e3:04:90", addressing: dhcp-reservation}
     addresses:
@@ -69,7 +77,10 @@ hosts:
     vmid: 102
     os: Debian
     role: qBittorrent download client with ProtonVPN
-    resources: {root_disk_gib: 16}
+    resources: {vcpu: 2, memory_mib: 2048, swap_mib: 512, root_disk_gib: 16, root_storage: local-lvm}
+    lxc_features: {nesting: true}
+    power_state: running
+    power_state_as_of: "2026-11-01"
     interfaces:
       - {name: eth0, bridge: vmbr1, vlan: servers, mac: "bc:24:11:97:e7:68", addressing: dhcp-reservation}
       - {name: proton, role: WireGuard-VPN, addressing: static-tunnel}
@@ -88,6 +99,8 @@ hosts:
     vmid: 103
     os: Debian 13
     role: Terraria game server
+    power_state: running
+    power_state_as_of: "2026-11-01"
     resources:
       vcpu: 4
       cpu_type: host
@@ -109,7 +122,9 @@ hosts:
     vmid: 104
     os: Debian
     role: Internal HTTPS reverse proxy
-    resources: {vcpu: "approximately 1", memory_mib: "512-1024", root_disk_gib: 8}
+    resources: {vcpu: 1, memory_mib: 512, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
+    power_state: running
+    power_state_as_of: "2026-11-01"
     interfaces:
       - {bridge: vmbr1, vlan: home, mac: "bc:24:11:a9:2e:07", addressing: dhcp-reservation}
     addresses:
@@ -123,6 +138,8 @@ hosts:
     vmid: 105
     os: Debian 13
     role: TV library automation
+    power_state: running
+    power_state_as_of: "2026-11-01"
     resources: {vcpu: 2, memory_mib: 1024, swap_mib: 512, root_disk_gib: 12, root_storage: local-lvm}
     interfaces:
       - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:ff:94:4c", addressing: dhcp-reservation}
@@ -139,6 +156,8 @@ hosts:
     vmid: 106
     os: Debian 13
     role: Movie library automation
+    power_state: running
+    power_state_as_of: "2026-11-01"
     resources: {vcpu: 2, memory_mib: 1024, swap_mib: 512, root_disk_gib: 12, root_storage: local-lvm}
     interfaces:
       - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:18:4f:26", addressing: dhcp-reservation}
@@ -155,6 +174,8 @@ hosts:
     vmid: 107
     os: Debian 13
     role: Prowlarr indexer manager and FlareSolverr host
+    power_state: running
+    power_state_as_of: "2026-11-01"
     resources: {vcpu: 1, memory_mib: 1024, swap_mib: 512, root_disk_gib: 8, root_storage: local-lvm}
     interfaces:
       - {bridge: vmbr1, vlan: servers, mac: "bc:24:11:3b:00:b7", addressing: dhcp-reservation}
@@ -168,6 +189,10 @@ hosts:
     hostname: dvdstream
     kind: lxc-privileged
     vmid: 108
+    power_state: stopped
+    power_state_status: confirmed
+    power_state_as_of: "2026-11-01"
+    power_state_reason: Intentionally left off because DVD streaming was not working reliably.
     os: Debian 13
     template: debian-13-standard_13.1-2_amd64.tar.zst
     role: Physical DVD inspection and planned live streaming
@@ -185,6 +210,7 @@ hosts:
       - Privileged only because low-level optical access is the dedicated purpose.
       - Host disk metadata is visible through sysfs; only sr0 and sg1 are intentionally passed.
       - Do not mount or touch host disks from this container.
+      - Keep the container stopped when it is not being actively diagnosed or used.
 
   - id: eap650
     status: confirmed

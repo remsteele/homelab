@@ -47,8 +47,10 @@ secret_locations:
     public_key_path: ~/.ssh/homelab_ed25519.pub
     key_type: Ed25519
     comment: homelab
+    fingerprint: SHA256:KxOez4FB3HfcyKBI5GHXEHuhyqrP8LPxbX2NESIgdF0
+    created_or_modified: "2026-11-01"
     storage: macOS Keychain
-    value_policy: Must remain on the Mac and outside this repository.
+    value_policy: The private key remains on the MacBook and outside this repository; only the public key is installed remotely.
   - id: terraria-server-secret
     status: confirmed
     host: games
@@ -59,16 +61,38 @@ secret_locations:
 ssh_policy:
   status: confirmed
   preferred_authentication: Ed25519 public key
-  emergency_fallback: Password authentication retained
+  shared_key_pair:
+    private_key_location: ~/.ssh/homelab_ed25519 on the owner's MacBook
+    public_key_location: ~/.ssh/homelab_ed25519.pub on the owner's MacBook
+    public_key_fingerprint: SHA256:KxOez4FB3HfcyKBI5GHXEHuhyqrP8LPxbX2NESIgdF0
+    private_key_remote_copy: prohibited
+    verified_as_of: "2026-11-01"
   password_policy: Unique randomized 18+ character value per host, stored only in a password manager
   root_login: Disable where practical
   admin_user: remington where practical
   sudo: Password required by default; no blanket NOPASSWD
   confirmed_hosts:
-    - host: games
-      user: remington
-      key_auth: confirmed
-  audit_remaining: needs_verification
+    - {host: router, user: remington, key_auth: confirmed, advertised_auth_methods: publickey-only, root_login: user-confirmed-disabled, password_login: confirmed-disabled}
+    - {host: pve, user: root, key_auth: confirmed, permit_root_login: true, password_authentication: true, hardening: required}
+    - {host: caddy, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: jellyfin, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: qbittorrent, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: sonarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: radarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: prowlarr, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
+    - {host: games, user: remington, key_auth: confirmed, advertised_auth_methods: "publickey,password"}
+    - {host: dvdstream, user: root, key_auth: user-reported, verification: unavailable-while-powered-off}
+  not_ssh_managed:
+    - {host: eap650, result: TCP 22 connection refused}
+  additional_keys:
+    - host: pve
+      account: root
+      fingerprint: SHA256:esvLKmQ2OSD+SuU4VnG9PiR9ePG7Y8ojdA15/u/znUs
+      type: RSA-4096
+      comment: root@pve
+      status: needs_verification
+      action: Confirm ownership and continued need.
+  audit_remaining: CT 108 effective SSH policy and Games effective daemon settings require local privileged inspection.
 
 service_exposure:
   public:

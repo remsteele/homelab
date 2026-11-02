@@ -17,6 +17,7 @@ services:
       status: needs_verification
     quirks:
       - Historical 400 Bad Request on refresh; final workaround state is unknown.
+    health_as_of_2026_11_01: {https_root_status: 200, service: reachable}
 
   - id: proxmox-webgui
     status: confirmed
@@ -31,6 +32,7 @@ services:
     proxy_backend:
       url: https://10.0.10.2:8006
       tls_verification: skipped-self-signed
+    health_as_of_2026_11_01: {https_root_status: 200, service: reachable}
 
   - id: eap-webui
     status: confirmed
@@ -50,11 +52,14 @@ services:
       status: needs_verification
     quirks:
       - Proxied login succeeds but the UI was blank after login; direct-IP access works.
+    health_as_of_2026_11_01: {https_root_status: 200, post_login_ui: needs_verification}
 
   - id: caddy
     status: confirmed
     host: caddy
     role: Internal reverse proxy and public-certificate termination
+    version: 2.11.6
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
     package_source: official Debian package
     config_paths:
       - /etc/caddy/Caddyfile
@@ -75,7 +80,11 @@ services:
     token_scope:
       - "Zone / DNS / Edit on rvsteele.com"
       - "Zone / Zone / Read on rvsteele.com"
-    exact_config_status: needs_verification
+    exact_config_status: confirmed
+    exact_config_verified_as_of: "2026-11-01"
+    validation: Valid configuration; formatting warning at line 12
+    confirmed_backends: [jellyfin, qbittorrent, pve, router, eap650, sonarr, radarr, prowlarr]
+    absent_planned_backends: [dvdstream]
 
   - id: jellyfin
     status: confirmed
@@ -97,6 +106,11 @@ services:
       - lg-c3
     evidence:
       - Import and display of The Last First - Winter K2 (2026) verified the Radarr-to-library path.
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
+    listeners:
+      - {protocol: UDP, port: 7359, purpose: client-discovery}
+      - {protocol: TCP, port: 8096, purpose: web-and-api}
+    health_as_of_2026_11_01: {https_root_status: 302, service: reachable}
 
   - id: qbittorrent
     status: confirmed
@@ -125,6 +139,10 @@ services:
       - opnsense-dns
       - media-storage
     direct_wan_exposure: false
+    version: 5.1.0
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
+    current_peer_port: 4761
+    health_as_of_2026_11_01: {https_root_status: 200, service: reachable}
 
   - id: proton-wireguard
     status: confirmed
@@ -136,7 +154,8 @@ services:
     allowed_ips: [0.0.0.0/0, "::/0"]
     endpoint:
       value: "146.70.195.82:51820"
-      status: needs_verification
+      status: confirmed
+      verified_as_of: "2026-11-01"
       note: Observed endpoint; may change with provider configuration.
     observed_addresses:
       - 10.2.0.2/32
@@ -152,11 +171,19 @@ services:
       - OPNsense permits CT 102 only DNS and UDP 51820 to PROTON_ENDPOINT, then blocks all other egress.
       - qBittorrent depends on the WireGuard systemd unit.
     boot_issue: wg-quick can run before DHCP makes 10.0.40.1 a valid next hop; its PostUp route then fails fatally.
+    runtime_as_of_2026_11_01:
+      systemd_enabled: true
+      active: true
+      latest_handshake_age: approximately 1 minute 23 seconds
+      received_gib: 57.17
+      sent_gib: 25.73
+      note: Counters and handshake age are ephemeral evidence, not desired configuration.
 
   - id: sonarr
     status: confirmed
     host: sonarr
     role: TV acquisition and library management
+    version: 4.0.20.3014
     listen:
       - {address: 10.0.40.12, protocol: HTTP, port: 8989}
     url: https://sonarr.home.rvsteele.com
@@ -181,11 +208,14 @@ services:
     quality_profile: needs_verification
     proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
     filesystem_evidence: Write test under /media/tv created mode 664 uid 102 gid 5000; hardlink test succeeded.
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
+    health_as_of_2026_11_01: {https_root_status: 302, service: reachable}
 
   - id: radarr
     status: confirmed
     host: radarr
     role: Movie acquisition and library management
+    version: 6.4.4.10685
     listen:
       - {address: 10.0.40.13, protocol: HTTP, port: 7878}
     url: https://radarr.home.rvsteele.com
@@ -210,11 +240,14 @@ services:
     quality_profile: needs_verification
     proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
     filesystem_evidence: Write and hardlink tests under /media/movies succeeded with the shared media group.
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
+    health_as_of_2026_11_01: {https_root_status: 302, service: reachable}
 
   - id: prowlarr
     status: confirmed
     host: prowlarr
     role: Indexer aggregation and Arr synchronization
+    version: 2.6.5.5623
     listen:
       - {address: 10.0.40.14, protocol: HTTP, port: 9696}
     url: https://prowlarr.home.rvsteele.com
@@ -230,6 +263,8 @@ services:
       - {name: YTS, status: confirmed, note: Works for Radarr}
     privacy_note: Indexer browsing uses the normal home WAN address; actual torrent peer/tracker/DHT traffic is qBittorrent over Proton.
     proxy_evidence: HTTP HEAD returned 401 because application authentication is enabled; browser HTTPS worked.
+    runtime: {systemd_enabled: true, active: true, verified_as_of: "2026-11-01"}
+    health_as_of_2026_11_01: {https_root_status: 302, service: reachable}
 
   - id: flaresolverr
     status: confirmed
@@ -245,6 +280,7 @@ services:
     containerization: native-not-Docker
     consumers:
       - {service: prowlarr, url: "http://127.0.0.1:8191", tag: flaresolverr}
+    runtime: {systemd_enabled: true, active: true, health: ready, verified_as_of: "2026-11-01"}
 
   - id: terraria
     status: confirmed
@@ -291,11 +327,16 @@ services:
     console_fifo: /run/terraria/console
     clean_shutdown: Wrapper sends exit on SIGTERM; verified to save and exit successfully.
     compatibility_note: World format header/version 318 crashes server 1.4.4.9; use 1.4.5.8.
+    runtime: {systemd_enabled: true, active: true, tcp_7777_listening: true, verified_as_of: "2026-11-01"}
 
   - id: dvd-inspection
     status: confirmed
     host: dvdstream
     role: Low-level DVD access and stream testing
+    availability: unavailable
+    availability_status: confirmed
+    availability_as_of: "2026-11-01"
+    availability_reason: CT 108 is intentionally powered off because the DVD workflow was not working reliably.
     devices: [/dev/sr0, /dev/sg1]
     packages:
       - ffmpeg
@@ -330,6 +371,7 @@ services:
     status: planned
     host: dvdstream
     role: Browser title selection and live HLS playback
+    current_availability: unavailable-host-stopped
     future_url: https://dvd.home.rvsteele.com
     future_backend: "10.0.40.15:<unassigned-port>"
     desired_pipeline:
@@ -351,10 +393,16 @@ services:
       - Add Unbound override and Caddy backend
 
   - id: zenarmor
-    status: needs_verification
+    status: confirmed
     host: router
     role: Per-device network visibility and policy
     edition: Free Edition selected
+    plugin_version: "2.7"
+    runtime:
+      engine: inactive
+      eastpect_service: not-running
+      zen0_interface: present-but-down
+      verified_as_of: "2026-11-01"
     desired_configuration:
       deployment_size: up to 25 devices
       data_store: local SQLite

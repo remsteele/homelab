@@ -17,8 +17,8 @@ address_lines = [
   "",
   "Generated from `data/hosts.yaml` by `tools/generate_docs.rb`. Do not edit by hand.",
   "",
-  "| Host | Type | VMID | Address | VLAN | MAC | State |",
-  "|---|---|---:|---|---|---|---|"
+  "| Host | Type | VMID | Power | Address | VLAN | MAC | State |",
+  "|---|---|---:|---|---|---|---|---|"
 ]
 
 hosts.each do |host|
@@ -32,6 +32,7 @@ hosts.each do |host|
       index.zero? ? host["id"] : "↳",
       index.zero? ? host["kind"] : "",
       index.zero? ? host["vmid"] : "",
+      index.zero? ? (host["power_state"] || "—") : "",
       address["ip"] || "—",
       address["vlan"] || address["interface"] || "—",
       interface["mac"] || "—",
@@ -45,8 +46,8 @@ endpoint_lines = [
   "",
   "Generated from `data/services.yaml` by `tools/generate_docs.rb`. Do not edit by hand.",
   "",
-  "| Service | Host | Listener | User URL / public endpoint | State |",
-  "|---|---|---|---|---|"
+  "| Service | Host | Listener | User URL / public endpoint | Availability | State |",
+  "|---|---|---|---|---|---|"
 ]
 
 services.each do |service|
@@ -58,7 +59,8 @@ services.each do |service|
   endpoint ||= service["public_endpoint"]
   endpoint ||= service["future_url"]
   endpoint ||= "—"
-  endpoint_lines << "| #{service['id']} | #{service['host']} | #{listeners.join('<br>')} | #{endpoint} | #{service['status']} |"
+  availability = service["availability"] || service["current_availability"] || "—"
+  endpoint_lines << "| #{service['id']} | #{service['host']} | #{listeners.join('<br>')} | #{endpoint} | #{availability} | #{service['status']} |"
 end
 
 File.write(File.join(OUT, "address-book.md"), address_lines.join("\n") + "\n")

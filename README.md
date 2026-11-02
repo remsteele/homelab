@@ -67,8 +67,10 @@ go into the structured files rather than being appended to that source dump.
 
 ## Current high-priority gaps
 
-The highest-value checks are the exact OPNsense firewall/NAT order, live DNS and
-DHCP records, the qBittorrent WireGuard boot race and leak test, the Caddyfile,
-backups, media-disk health, and the optical-drive SATA repair. The full,
-actionable list is in `data/verification.yaml`.
+The urgent finding is the media HDD's 3,304 pending sectors. Back up
+irreplaceable data and plan replacement before treating that disk as reliable.
+The remaining highest-value checks are the exact OPNsense firewall/NAT order,
+the qBittorrent WireGuard leak test and boot race, a real backup/restore plan,
+SSH hardening on Proxmox, and the optical-drive SATA repair. The full actionable
+list is in `data/verification.yaml` and `data/issues.yaml`.
 

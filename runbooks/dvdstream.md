@@ -4,6 +4,10 @@ CT 108 is a privileged Debian 13 container dedicated to the physical optical
 drive. It intentionally receives only `/dev/sr0` and `/dev/sg1`; do not mount or
 touch host disks from this container.
 
+Current state: CT 108 is intentionally stopped because the DVD workflow was not
+working reliably. Starting it should be treated as a deliberate diagnostic or
+development action, not as recovery of a known-good production service.
+
 ## Passthrough contract
 
 `/etc/pve/lxc/108.conf` contains:

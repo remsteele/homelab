@@ -6,6 +6,15 @@ semantics:
   same_vlan_note: Traffic between services on VLAN 40 is switched locally and does not traverse inter-VLAN rules.
   current_order_warning: Exact live rule order and automatically generated rules need a sanitized export.
 
+proxmox_firewall:
+  status: confirmed
+  verified_as_of: "2026-11-01"
+  daemon_status: disabled/running
+  rule_files_found: 0
+  guest_nic_firewall_flags: enabled on VMs and containers 100-108
+  enforcement_note: Guest firewall flags do not provide an independently verified policy while the Proxmox firewall is disabled.
+  architecture_note: OPNsense remains the active inter-VLAN firewall; same-VLAN VLAN 40 traffic is not filtered by OPNsense.
+
 aliases:
   - id: local_nets
     status: confirmed

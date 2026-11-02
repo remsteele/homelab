@@ -10,13 +10,18 @@ site:
   public_dns_provider: Cloudflare
   virtualization:
     platform: Proxmox VE
-    reported_version: "9.2"
-    version_status: needs_verification
+    platform_package_version: "9.2.0"
+    manager_version: "9.2.2"
+    running_kernel: 7.0.2-6-pve
+    version_status: confirmed
+    verified_as_of: "2026-11-01"
     install_type: bare-metal
   router:
     platform: OPNsense
-    reported_version: "at least 26.7.5"
-    version_status: needs_verification
+    version: "26.7.5"
+    kernel: FreeBSD 15.1-RELEASE-p3
+    version_status: confirmed
+    verified_as_of: "2026-11-01"
   notes:
     - The Cox gateway is bridged; OPNsense is the router and firewall.
     - The public IPv4 address is dynamic.
@@ -24,4 +29,11 @@ source:
   imported_from: context.txt
   import_date: 2026-11-01
   policy: No live discovery was performed during the initial import.
+live_discovery:
+  latest_date: "2026-11-01"
+  method: Read-only SSH inventory from the owner's MacBook
+  evidence_roots:
+    - snapshots/proxmox/2026-11-01
+    - snapshots/opnsense/2026-11-01
+    - snapshots/services/2026-11-01
 

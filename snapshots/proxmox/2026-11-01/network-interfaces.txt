@@ -1,0 +1,33 @@
+# Read-only capture from /etc/network/interfaces on 2026-11-01.
+
+auto lo
+iface lo inet loopback
+
+iface nic0 inet manual
+iface nic1 inet manual
+iface enxa0cec8075f93 inet manual
+iface wlo1 inet manual
+iface enp3s0f0 inet manual
+iface enp3s0f1 inet manual
+
+auto vmbr0
+iface vmbr0 inet manual
+	bridge-ports enp3s0f0
+	bridge-stp off
+	bridge-fd 0
+
+auto vmbr1
+iface vmbr1 inet manual
+	bridge-ports enp3s0f1
+	bridge-stp off
+	bridge-fd 0
+	bridge-vlan-aware yes
+	bridge-vids 2-4094
+
+auto vmbr1.10
+iface vmbr1.10 inet static
+	address 10.0.10.2/24
+	gateway 10.0.10.1
+
+source /etc/network/interfaces.d/*
+

@@ -1,0 +1,82 @@
+snapshot_version: 1
+system: router
+collected_at: "2026-11-01"
+method: Read-only SSH as remington plus direct DNS queries
+sanitized: true
+
+software:
+  opnsense: 26.7.5
+  kernel: FreeBSD 15.1-RELEASE-p3
+  dnsmasq: "2.93"
+  os_ddclient: "1.31_1"
+  zenarmor_plugin: "2.7"
+
+ssh:
+  account: remington
+  groups: [wheel]
+  homelab_key_verified: true
+  advertised_authentication: [publickey]
+  password_authentication: disabled
+  root_login: user-confirmed-disabled
+  sudo_without_password: false
+
+interfaces:
+  wan:
+    device: vtnet0
+    mac: "bc:24:11:11:f3:bd"
+    ipv4: 70.179.13.243/22
+    ipv4_gateway: 70.179.12.1
+    ipv6: "2600:8801:ff00:e00:8b0:e5f1:5790:6fdc/128"
+    dynamic: true
+  untagged_lan:
+    device: vtnet1
+    ipv4: 192.168.1.1/24
+    ipv6: "2600:8801:8e00:1cf:be24:11ff:fe74:83af/64"
+    state: active
+  vlans:
+    - {device: vlan01, id: 10, name: HOME, ipv4: 10.0.10.1/24}
+    - {device: vlan02, id: 20, name: IOT, ipv4: 10.0.20.1/24}
+    - {device: vlan03, id: 30, name: GUEST, ipv4: 10.0.30.1/24}
+    - {device: vlan04, id: 40, name: SERVERS, ipv4: 10.0.40.1/24}
+    - {device: vlan05, id: 50, name: DMZ, ipv4: 10.0.50.1/24}
+
+dns_dhcp:
+  unbound: running
+  dnsmasq: running
+  dnsmasq_port: 53053
+  dhcp_domain: internal
+  pools:
+    - 192.168.1.100-192.168.1.199
+    - 10.0.10.100-10.0.10.199
+    - 10.0.20.100-10.0.20.199
+    - 10.0.30.100-10.0.30.199
+    - 10.0.40.100-10.0.40.199
+    - 10.0.50.100-10.0.50.199
+  reservation_count: 8
+  verified_proxy_records:
+    - router.home.rvsteele.com=10.0.10.3
+    - pve.home.rvsteele.com=10.0.10.3
+    - ap.home.rvsteele.com=10.0.10.3
+    - jellyfin.home.rvsteele.com=10.0.10.3
+    - qbittorrent.home.rvsteele.com=10.0.10.3
+    - sonarr.home.rvsteele.com=10.0.10.3
+    - radarr.home.rvsteele.com=10.0.10.3
+    - prowlarr.home.rvsteele.com=10.0.10.3
+    - terraria.home.rvsteele.com=10.0.50.10
+  absent_records: [dvd.home.rvsteele.com, ntop.home.rvsteele.com]
+  public_ddns:
+    name: terraria.rvsteele.com
+    resolved_ipv4: 70.179.13.243
+    matches_wan_ipv4: true
+
+zenarmor:
+  installed: true
+  engine_running: false
+  zen0_state: down
+
+unverified_due_to_privilege_boundary:
+  - Effective PF rule ordering
+  - NAT rules
+  - LOCAL_NETS and PROTON_ENDPOINT live table contents
+  - Unbound generated override source configuration
+
