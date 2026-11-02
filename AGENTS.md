@@ -38,7 +38,7 @@ Use only these state labels in `status` fields: `confirmed`, `historical`,
 | Terraria or public game access | `data/services.yaml`, `data/firewall.yaml`, `data/dns_dhcp.yaml` | `runbooks/terraria.md` |
 | DVD streaming or optical hardware | `data/hosts.yaml`, `data/services.yaml`, `data/physical.yaml` | `runbooks/dvdstream.md` |
 | Internet outage or WAN recovery | `data/networks.yaml`, `data/services.yaml` | `runbooks/internet-outage.md` |
-| Known fault, unresolved claim, or future change | `data/issues.yaml`, `data/verification.yaml`, `data/plans.yaml` | Relevant runbook and latest snapshot |
+| Known fault, unresolved claim, future change, or task priority | `TODO.md`, `data/issues.yaml`, `data/verification.yaml`, `data/plans.yaml` | Relevant runbook and latest snapshot |
 | Credentials, tokens, keys, or exposure policy | `data/security.yaml` | `snapshots/README.md`; never inspect or commit secret values |
 
 When an answer spans several domains, update every affected source. A new web

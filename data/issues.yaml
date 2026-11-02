@@ -1,5 +1,37 @@
 schema_version: 1
 issues:
+  - id: software-update-backlog
+    status: confirmed
+    severity: high
+    affects: [router, pve, caddy, jellyfin, qbittorrent, prowlarr, uptime-kuma, debian-guests]
+    evidence_as_of: "2026-11-02"
+    symptom: OPNsense is 26.7.5 while 26.7.8 is available; cached Proxmox metadata lists 182 upgrades; older service LXCs list 81-86 Debian upgrades; several applications have newer stable releases.
+    notable_application_updates:
+      - {service: caddy, installed: 2.11.6, observed_latest: 2.11.7}
+      - {service: jellyfin, installed: 12.1.0, observed_latest: "12.4"}
+      - {service: qbittorrent, installed: 5.1.0, observed_latest: 5.3.0}
+      - {service: prowlarr, installed: 2.6.5.5623, observed_latest: 2.7.0.5723}
+      - {service: uptime-kuma, installed: 2.5.8, observed_latest: 2.5.9, note: Security fix included}
+    action: Follow TODO.md in dependency order; establish backups first, refresh metadata immediately before maintenance, and verify each service after upgrade.
+
+  - id: opnsense-ssh-key-rejected
+    status: confirmed
+    severity: medium
+    affects: [router, ssh-management]
+    evidence_as_of: "2026-11-02"
+    symptom: OPNsense advertises publickey-only authentication but rejects the documented homelab Ed25519 key for remington.
+    impact: API and Web UI access remain available, but the documented read-only SSH management path does not work.
+    action: Restore the public key through an authenticated recovery path and verify a second session before closing the first.
+
+  - id: lxc-mount-unit-failures
+    status: needs_verification
+    severity: low
+    affects: [jellyfin, caddy, sonarr, radarr, prowlarr, adguard]
+    evidence_as_of: "2026-11-02"
+    symptom: systemd reports dev-mqueue.mount, run-lock.mount, and tmp.mount failed while the hosted applications remain healthy.
+    suspected_cause: Debian systemd mount behavior inside Proxmox LXCs.
+    action: Confirm whether the expected mounts are present and writable before deciding whether any unit override is needed.
+
   - id: adguard-network-rollout-incomplete
     status: confirmed
     severity: medium

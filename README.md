@@ -34,6 +34,7 @@ under `snapshots/`; a snapshot is evidence, not automatically desired state.
 - `data/issues.yaml` — known problems with symptoms and next checks
 - `data/plans.yaml` — desired architecture that is not current
 - `data/verification.yaml` — evidence backlog for unknown current state
+- `TODO.md` — prioritized, checkable execution view of open work
 - `docs/topology.md` — readable topology and policy explanation
 - `runbooks/` — recovery and operating procedures
 - `runbooks/service-onboarding.md` — checklist for adding a host, DNS, Caddy, and firewall policy

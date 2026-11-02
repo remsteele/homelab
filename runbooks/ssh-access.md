@@ -13,7 +13,7 @@ into this repository, a VM/container, a snapshot, or a prompt.
 
 | Host | Address | SSH account | Verified posture |
 |---|---|---|---|
-| OPNsense | 10.0.10.1 | `remington` | Public-key only; root login user-confirmed disabled |
+| OPNsense | 10.0.10.1 | `remington` | Public-key only is advertised, but the documented key was rejected on 2026-11-02; repair required |
 | Proxmox | 10.0.10.2 | `root` | Root key and password login currently allowed |
 | Caddy | 10.0.10.3 | `root` | Root key-only; passwords enabled globally |
 | AdGuard Home | 10.0.10.4 | `root` | Root key-only; passwords enabled globally |
@@ -35,6 +35,10 @@ Example:
 ssh -i ~/.ssh/homelab_ed25519 remington@10.0.10.1
 ssh -i ~/.ssh/homelab_ed25519 root@10.0.10.2
 ```
+
+The OPNsense example is the desired command, not a currently working access
+claim. Repair the user's authorized key through the Web UI or console while
+preserving the working API and console recovery paths.
 
 ## Read-only agent use
 

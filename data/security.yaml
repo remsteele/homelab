@@ -114,7 +114,7 @@ ssh_policy:
   admin_user: remington where practical
   sudo: Password required by default; no blanket NOPASSWD
   confirmed_hosts:
-    - {host: router, user: remington, key_auth: confirmed, advertised_auth_methods: publickey-only, root_login: user-confirmed-disabled, password_login: confirmed-disabled}
+    - {host: router, user: remington, key_auth: needs_verification, advertised_auth_methods: publickey-only, root_login: user-confirmed-disabled, password_login: confirmed-disabled, last_test: "Documented Ed25519 key rejected on 2026-11-02"}
     - {host: pve, user: root, key_auth: confirmed, permit_root_login: true, password_authentication: true, hardening: required}
     - {host: caddy, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}
     - {host: jellyfin, user: root, key_auth: confirmed, permit_root_login: publickey-only, password_authentication_for_other_users: true}

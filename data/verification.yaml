@@ -22,8 +22,8 @@ checks:
   - {id: ntop-cleanup, priority: low, status: confirmed, target: router, evidence: No ntop package, Caddy block, or DNS A response found on 2026-11-01}
   - {id: zenarmor-state, priority: medium, status: confirmed, target: router, evidence: os-sensei 2.7 installed; eastpect inactive and zen0 down on 2026-11-01}
   - {id: opnsense-vcpu, priority: low, status: confirmed, target: router, evidence: qm config 100 reports 2 cores}
-  - {id: opnsense-version, priority: medium, status: confirmed, target: router, evidence: OPNsense package/version reports 26.7.5}
-  - {id: proxmox-version, priority: medium, status: confirmed, target: pve, evidence: pve-manager 9.2.2 and kernel 7.0.2-6-pve}
+  - {id: opnsense-version, priority: medium, status: confirmed, target: router, evidence: OPNsense reports 26.7.5 with 26.7.8 available on 2026-11-02}
+  - {id: proxmox-version, priority: medium, status: confirmed, target: pve, evidence: pve-manager 9.2.2 and kernel 7.0.2-6-pve; cached metadata listed 182 upgrades on 2026-11-02}
   - {id: caddyfile, priority: high, status: confirmed, target: caddy, evidence: Exact sanitized Caddyfile inspected and caddy validate passed on 2026-11-01}
   - {id: router-proxy-refresh, priority: medium, status: needs_verification, target: caddy, evidence: Refresh/deep-link test plus relevant Caddy log}
   - {id: ap-proxy-ui, priority: medium, status: needs_verification, target: caddy, evidence: Post-login UI test and browser developer-tools failures}
@@ -34,7 +34,7 @@ checks:
   - {id: media-uuid-smart, priority: critical, status: confirmed, target: pve, evidence: UUID captured; SMART shows 3304 pending sectors and requires urgent action}
   - {id: backup-strategy, priority: critical, status: needs_verification, target: site, evidence: Jobs, destinations, retention, offsite copy, and last restore test}
   - {id: ups-power, priority: high, status: needs_verification, target: site, evidence: UPS hardware, shutdown integration, and power-loss behavior}
-  - {id: ssh-audit, priority: high, status: needs_verification, target: all-hosts, evidence: All running compute hosts/key fingerprints verified; CT 108 is off and Games effective daemon config needs privileged inspection}
+  - {id: ssh-audit, priority: high, status: needs_verification, target: all-hosts, evidence: Service-host keys work; OPNsense rejected the documented key on 2026-11-02; CT 108 is off and Games effective daemon config needs privileged inspection}
   - {id: arr-quality-profiles, priority: low, status: needs_verification, target: [sonarr, radarr], evidence: Export/screenshot of saved profiles and cutoffs}
   - {id: marama-folder, priority: low, status: needs_verification, target: pve, evidence: Confirm mistaken empty directory absent}
   - {id: dvdstream-nesting, priority: low, status: needs_verification, target: dvdstream, evidence: Determine if any required service actually needs nesting}
