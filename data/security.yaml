@@ -106,6 +106,7 @@ ssh_policy:
   shared_key_pair:
     private_key_location: ~/.ssh/homelab_ed25519 on the owner's MacBook
     public_key_location: ~/.ssh/homelab_ed25519.pub on the owner's MacBook
+    client_config: ~/.ssh/config with direct-IP short-name and web-FQDN aliases; mode 0600
     public_key_fingerprint: SHA256:KxOez4FB3HfcyKBI5GHXEHuhyqrP8LPxbX2NESIgdF0
     private_key_remote_copy: prohibited
     verified_as_of: "2026-11-01"

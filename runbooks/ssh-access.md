@@ -32,13 +32,39 @@ The EAP650 refuses TCP 22 and is not SSH-managed.
 Example:
 
 ```sh
-ssh -i ~/.ssh/homelab_ed25519 remington@10.0.10.1
-ssh -i ~/.ssh/homelab_ed25519 root@10.0.10.2
+ssh router
+ssh pve
 ```
 
 The OPNsense example is the desired command, not a currently working access
 claim. Repair the user's authorized key through the Web UI or console while
 preserving the working API and console recovery paths.
+
+## MacBook SSH aliases
+
+`~/.ssh/config` maps short names and web FQDNs directly to each host's real
+backend address. All homelab entries use `~/.ssh/homelab_ed25519`, public-key
+authentication, and `IdentitiesOnly yes`; the file is mode `0600`.
+
+| Command | Destination | User | Additional aliases |
+|---|---|---|---|
+| `ssh router` | `10.0.10.1` | `remington` | `opnsense`, `router.home.rvsteele.com` |
+| `ssh pve` | `10.0.10.2` | `root` | `proxmox`, `pve.home.rvsteele.com` |
+| `ssh caddy` | `10.0.10.3` | `root` | — |
+| `ssh adguard` | `10.0.10.4` | `root` | `adguard.home.rvsteele.com` |
+| `ssh homepage` | `10.0.10.5` | `root` | `homepage.home.rvsteele.com` |
+| `ssh uptime` | `10.0.10.6` | `root` | `uptime-kuma`, `uptime.home.rvsteele.com` |
+| `ssh jellyfin` | `10.0.40.10` | `root` | `jellyfin.home.rvsteele.com` |
+| `ssh qbittorrent` | `10.0.40.11` | `root` | `qbit`, `qbittorrent.home.rvsteele.com` |
+| `ssh sonarr` | `10.0.40.12` | `root` | `sonarr.home.rvsteele.com` |
+| `ssh radarr` | `10.0.40.13` | `root` | `radarr.home.rvsteele.com` |
+| `ssh prowlarr` | `10.0.40.14` | `root` | `prowlarr.home.rvsteele.com` |
+| `ssh dvdstream` | `10.0.40.15` | `root` | Host intentionally stopped |
+| `ssh games` | `10.0.50.10` | `remington` | `terraria`, `terraria.home.rvsteele.com` |
+
+The FQDN aliases intentionally override normal DNS resolution for SSH. Web
+names usually resolve to Caddy at `10.0.10.3`, while SSH must reach the backend
+host itself.
 
 ## Read-only agent use
 
