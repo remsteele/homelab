@@ -53,8 +53,10 @@ security, a runbook, and a dated snapshot.
 - OPNsense: `remington@10.0.10.1`; public-key only. This account does not have
   non-interactive privileged access. Do not work around sudo or GUI controls.
 - Debian service containers: normally `root@<address>` with public-key login.
-- Planned OPNsense machine access: follow `runbooks/opnsense-api.md`. Never
-  invent endpoints, use an administrator key, or place an API key in Git.
+- OPNsense API access uses the dedicated `homelab-api` account, is restricted
+  to the owner's MacBook at `10.0.10.194/32`, and retrieves its key/secret from
+  macOS Keychain. Follow `runbooks/opnsense-api.md`; never print credentials,
+  invent endpoints, or place an API key in Git.
 
 For discovery, prefer narrow commands and sanitized outputs. Do not collect
 whole configuration trees, environment dumps, password databases, browser

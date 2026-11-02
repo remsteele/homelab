@@ -28,7 +28,7 @@ Consequently, this deployment does not yet filter most client traffic.
 
 ## Dnsmasq host entry
 
-Add the container under **Services → Dnsmasq DNS & DHCP → Hosts** with:
+The container is present under **Services → Dnsmasq DNS & DHCP → Hosts** with:
 
 | Field | Value |
 |---|---|
@@ -43,18 +43,20 @@ its MAC/IP identity and reserves the address if DHCP is ever enabled; it does
 not assign the container's current address. The client-facing web name must
 still point to Caddy at `10.0.10.3`, not directly to this `.4` backend.
 
-## OPNsense rollout
+The row and the Unbound override
+`adguard.home.rvsteele.com A 10.0.10.3` were confirmed through the OPNsense API
+on 2026-11-02.
 
-1. Add an Unbound host override:
-   `adguard.home.rvsteele.com A 10.0.10.3`.
-2. On IOT, GUEST, SERVERS, and DMZ, add an IPv4 TCP/UDP pass from the interface
+## Remaining OPNsense rollout
+
+1. On IOT, GUEST, SERVERS, and DMZ, add an IPv4 TCP/UDP pass from the interface
    net to `10.0.10.4` port 53 above the `LOCAL_NETS` block.
-3. Change DHCP DNS to only `10.0.10.4`, one VLAN at a time. Renew one test
+2. Change DHCP DNS to only `10.0.10.4`, one VLAN at a time. Renew one test
    client and verify public, local, and blocked queries before proceeding.
-4. Leave qBittorrent CT 102 on `10.0.40.1` until its host-specific DNS rule and
+3. Leave qBittorrent CT 102 on `10.0.40.1` until its host-specific DNS rule and
    VPN leak test are deliberately updated. Its first three fail-closed rules
    must stay above generic SERVERS rules.
-5. Do not advertise `10.0.10.1` as a secondary if strict filtering is the
+4. Do not advertise `10.0.10.1` as a secondary if strict filtering is the
    goal: clients may use it and bypass AdGuard. A single resolver is a
    deliberate availability tradeoff until a second filtering instance exists.
 

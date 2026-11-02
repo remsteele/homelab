@@ -1,6 +1,6 @@
 schema_version: 1
 checks:
-  - {id: opnsense-api-provisioning, priority: medium, status: needs_verification, target: router, evidence: Create dedicated no-shell DNS-only API user/group with fixed Mac /32 source restriction; store unique key/secret in Keychain and pass read-only status/search tests}
+  - {id: opnsense-api-provisioning, priority: medium, status: confirmed, target: router, evidence: Dedicated homelab-api user and homelab-api-access group restricted to 10.0.10.194/32; key/secret stored in Keychain; pinned TLS plus firmware, Dnsmasq, and firewall searches passed on 2026-11-02}
   - {id: adguard-service, priority: high, status: confirmed, target: adguard, evidence: AdGuard Home v0.107.79 enabled/active after CT 109 reboot; TCP/UDP 53 and HTTP 80 listening on 10.0.10.4 on 2026-11-01}
   - {id: adguard-resolution, priority: high, status: confirmed, target: adguard, evidence: Public DoH, conditional local lookup, default-list block, and Caddy rewrite queries passed on 2026-11-01}
   - {id: adguard-https, priority: high, status: confirmed, target: caddy, evidence: Caddy config validated; HTTPS returned 302 through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
@@ -9,7 +9,7 @@ checks:
   - {id: homepage-https, priority: high, status: confirmed, target: caddy, evidence: Caddy configuration validated; HTTPS returned an authentication redirect through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
   - {id: uptime-kuma-service, priority: high, status: confirmed, target: uptime-kuma, evidence: Pinned 2.5.8 container and local SQLite data returned after CT 111 reboot; all ten configured monitors reported UP on 2026-11-01}
   - {id: uptime-kuma-https, priority: high, status: confirmed, target: caddy, evidence: HTTPS returned the login redirect through 10.0.10.3 with certificate verification result 0 on 2026-11-01}
-  - {id: observability-opnsense-dns, priority: high, status: needs_verification, target: router, evidence: Add the two Dnsmasq host identities and two Unbound Caddy overrides documented in runbooks/observability.md, then query 10.0.10.1 directly}
+  - {id: observability-opnsense-dns, priority: high, status: confirmed, target: router, evidence: Authenticated API confirmed Homepage and Uptime Kuma Dnsmasq host identities and Unbound Caddy overrides on 2026-11-02}
   - {id: pve-network-config, priority: high, status: confirmed, target: pve, evidence: Read-only SSH capture of interfaces, addresses, routes, and bridge VLANs on 2026-11-01}
   - {id: opnsense-firewall-export, priority: high, status: needs_verification, target: router, evidence: Sanitized ordered rules, aliases, floating rules, and generated NAT associations}
   - {id: opnsense-nat-export, priority: high, status: needs_verification, target: router, evidence: Port-forward and outbound-NAT export including rule order}

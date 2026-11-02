@@ -1,0 +1,49 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: Authenticated native OPNsense API over pinned TLS
+  mutation_performed: false
+
+identity:
+  user: homelab-api
+  group: homelab-api-access
+  privilege: WebCfg - All pages
+  source_network: 10.0.10.194/32
+  source_reservation: remington-macbook.home.rvsteele.com
+  source_mac: "56:fa:43:ce:40:23"
+  login_shell: /sbin/nologin
+  ordinary_password: scrambled-disabled
+  warning: Full WebCfg API read/write authority; explicit authorization is required before mutations.
+
+credentials:
+  storage: macOS Keychain generic passwords
+  account: homelab-api
+  service_names:
+    - homelab-opnsense-api-key
+    - homelab-opnsense-api-secret
+  values_in_snapshot: false
+  downloaded_plaintext_file: permanently-deleted-after-validation
+
+tls:
+  hostname: OPNsense.internal
+  forced_address: 10.0.10.1
+  certificate_path: ~/.config/opnsense/OPNsense.internal.pem
+  sha256_fingerprint: "34:AC:46:8B:E1:AA:35:9E:4A:06:6D:C0:52:F6:E9:06:FB:61:21:C4:64:2C:F2:F7:9E:24:A9:6E:A7:3A:76:E9"
+  expires: "2027-11-01"
+  verification: passed
+
+api_tests:
+  firmware_version: 26.7.5
+  dnsmasq_host_search: {method: POST, purpose: non-mutating-search, rows: 12, result: passed}
+  firewall_rule_search: {method: POST, purpose: non-mutating-search, rows: 93, result: passed}
+
+confirmed_dns:
+  dnsmasq_hosts:
+    - {name: adguard.home.rvsteele.com, ip: 10.0.10.4, mac: "bc:24:11:ad:00:09"}
+    - {name: homepage.home.rvsteele.com, ip: 10.0.10.5, mac: "bc:24:11:a3:fa:7d"}
+    - {name: uptime-kuma.home.rvsteele.com, ip: 10.0.10.6, mac: "bc:24:11:9f:a1:9b"}
+    - {name: remington-macbook.home.rvsteele.com, ip: 10.0.10.194, mac: "56:fa:43:ce:40:23"}
+  unbound_host_overrides:
+    - {name: adguard.home.rvsteele.com, value: 10.0.10.3}
+    - {name: homepage.home.rvsteele.com, value: 10.0.10.3}
+    - {name: uptime.home.rvsteele.com, value: 10.0.10.3}

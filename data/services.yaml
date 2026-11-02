@@ -3,7 +3,7 @@ services:
   - id: opnsense-api
     status: confirmed
     host: router
-    role: Native JSON API for scoped machine administration
+    role: Native JSON API for full WebCfg read/write administration from the restricted MacBook client
     version: OPNsense 26.7.5
     listen:
       - {address: 10.0.10.1, protocol: HTTPS, port: 443}
@@ -12,9 +12,24 @@ services:
     tls:
       direct_certificate: Self-signed for OPNsense.internal
       routine_policy: Pin/verify the exported public certificate and force 10.0.10.1; do not use insecure mode.
+      pinned_certificate_path: ~/.config/opnsense/OPNsense.internal.pem
+      sha256_fingerprint: "34:AC:46:8B:E1:AA:35:9E:4A:06:6D:C0:52:F6:E9:06:FB:61:21:C4:64:2C:F2:F7:9E:24:A9:6E:A7:3A:76:E9"
+      expires: "2027-11-01"
     confirmed_modules: [dnsmasq, unbound, firewall]
-    credential_provisioning: planned
-    authorization_warning: Installed module ACLs commonly combine GET and POST endpoints under one privilege.
+    credential_provisioning: confirmed
+    api_identity:
+      user: homelab-api
+      group: homelab-api-access
+      privilege: WebCfg - All pages
+      source_network: 10.0.10.194/32
+      login_shell: /sbin/nologin
+      ordinary_password: scrambled
+    authorization_warning: This key has full WebCfg read/write authority; use the repository change protocol and explicit user authorization for mutations.
+    verification_as_of_2026_11_02:
+      firmware_status: 26.7.5
+      dnsmasq_host_search: passed
+      firewall_rule_search: passed
+      tls_pinning: passed
     runbook: runbooks/opnsense-api.md
 
   - id: opnsense-webgui

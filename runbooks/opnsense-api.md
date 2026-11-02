@@ -13,11 +13,35 @@ Official references:
 - [Dnsmasq API endpoints](https://docs.opnsense.org/development/api/core/dnsmasq.html)
 - [Firewall API endpoints](https://docs.opnsense.org/development/api/core/firewall.html)
 
-## Security model and limitation
+## Deployed access
 
-Create a dedicated account and a unique key for this application. Never use a
-root or administrator API key. OPNsense downloads the secret only once and does
-not retain a recoverable copy; losing it requires generating a new key.
+The dedicated API identity was provisioned and tested on 2026-11-02:
+
+| Setting | Deployed value |
+|---|---|
+| User | `homelab-api` |
+| Group | `homelab-api-access` |
+| Privilege | `WebCfg - All pages` |
+| Source network | `10.0.10.194/32` |
+| Source reservation | `remington-macbook`, MAC `56:FA:43:CE:40:23` |
+| Login shell | `/sbin/nologin` |
+| Ordinary password | Scrambled; not usable for normal login |
+| SSH/OTP | Not configured |
+| API credentials | macOS Keychain, account `homelab-api` |
+
+This is full WebCfg API read/write authority, not technically read-only. The
+source restriction limits it to the owner's reserved MacBook address, but a
+compromise of that Mac or its API key could still change the firewall. API
+mutations therefore require an explicit user request and the change protocol
+below. Routine discovery is non-mutating even when an endpoint uses POST for a
+search grid.
+
+OPNsense downloads an API secret only once and does not retain a recoverable
+copy. The downloaded plaintext file was permanently removed after the Keychain
+and authenticated TLS tests succeeded. Losing the Keychain values requires
+generating a replacement key in OPNsense.
+
+## ACL limitations
 
 The installed ACLs group read and write operations together:
 
@@ -28,44 +52,14 @@ The installed ACLs group read and write operations together:
 | `page-services-unbound` | Services: Unbound | `api/unbound/*`, including reconfigure |
 | `page-filter-api` | Firewall: Rules [new] | `api/firewall/filter/*` |
 
-Therefore, granting Dnsmasq or modern firewall access is not technically
-read-only. The user can call both GET and POST endpoints within that module.
-Operational policy must default to GET, and credentials should be split or
-revoked when ongoing write access is not wanted. A custom OPNsense ACL/plugin
-would be required for hard read-only separation.
+The deployed `WebCfg - All pages` privilege is broader than these module ACLs
+and exposes all WebCfg-backed API methods. A custom OPNsense ACL/plugin would be
+required for hard read-only separation. Revoke the key or remove the group
+membership if ongoing write capability is no longer wanted.
 
 The firewall API manages the modern **Firewall → Rules** implementation. Do
 not assume it manages rules created through legacy pages; verify the rule is
 visible through `search_rule` before planning an API change.
-
-## Recommended first deployment
-
-Start DNS-only. Add firewall access later as a separate decision.
-
-1. Give the owner's Mac a fixed HOME address or DHCP reservation. Restrict the
-   API group to that `/32` under **Source Networks**. The observed address on
-   2026-11-01 was `10.0.10.194`, but do not rely on it until reserved.
-2. Go to **System → Access → Groups** and create `homelab-api-dns`.
-3. Set its source network to the fixed Mac `/32`.
-4. Assign only **Services: Dnsmasq DNS/DHCP: Settings** initially.
-5. Go to **System → Access → Users** and create `homelab-agent`:
-   - no administrator group;
-   - no SSH authorized key;
-   - login shell `/sbin/nologin`;
-   - use **Scrambled Password** so ordinary local-password login is unavailable;
-   - membership only in `homelab-api-dns`.
-6. Save, edit the user, and create one API key. Download the key/secret file
-   once. Do not place it in this repository or a snapshot.
-
-For Unbound override automation, the narrow override privilege covers CRUD but
-the UI applies changes through `/api/unbound/service/reconfigure`, which the
-installed ACL places under broad **Services: Unbound**. Granting that broad
-privilege is a material expansion. Keep Unbound changes manual unless that
-tradeoff is accepted.
-
-For firewall automation, prefer a separate `homelab-api-firewall` group/user
-with only **Firewall: Rules [new]**. This contains rule creation, modification,
-movement, deletion, and apply operations, so do not add it merely for auditing.
 
 ## Store credentials on the Mac
 
@@ -74,14 +68,14 @@ placeholders locally; never paste the resulting values into chat or Git.
 
 ```sh
 security add-generic-password -U \
-  -a homelab-agent -s homelab-opnsense-api-key -w 'PASTE_KEY'
+  -a homelab-api -s homelab-opnsense-api-key -w 'PASTE_KEY'
 security add-generic-password -U \
-  -a homelab-agent -s homelab-opnsense-api-secret -w 'PASTE_SECRET'
+  -a homelab-api -s homelab-opnsense-api-secret -w 'PASTE_SECRET'
 ```
 
-Afterward, move the downloaded credential file to Trash and empty it only after
-the Keychain test succeeds. Record the creation date and privilege scope in
-`data/security.yaml`, never the values.
+Afterward, remove the downloaded credential file only after the Keychain test
+succeeds. Record the creation date and privilege scope in `data/security.yaml`,
+never the values. The current credential file has already been removed.
 
 ## TLS and endpoint choice
 
@@ -102,19 +96,28 @@ openssl x509 -in ~/.config/opnsense/OPNsense.internal.pem \
   -noout -sha256 -fingerprint -subject -dates
 ```
 
+The pinned certificate currently has:
+
+```text
+subject: CN=OPNsense.internal
+SHA-256: 34:AC:46:8B:E1:AA:35:9E:4A:06:6D:C0:52:F6:E9:06:FB:61:21:C4:64:2C:F2:F7:9E:24:A9:6E:A7:3A:76:E9
+expires: 2027-11-01
+path:    ~/.config/opnsense/OPNsense.internal.pem
+```
+
 Do not use `--insecure` for routine access. `router.home.rvsteele.com` has a
 valid Caddy certificate, but API traffic through it arrives at OPNsense from
 Caddy (`10.0.10.3`), defeating a Mac `/32` source restriction.
 
-## Read-only connection test
+## Non-mutating connection test
 
 This test reads Dnsmasq status and does not change configuration:
 
 ```sh
 opn_key=$(security find-generic-password -w \
-  -a homelab-agent -s homelab-opnsense-api-key)
+  -a homelab-api -s homelab-opnsense-api-key)
 opn_secret=$(security find-generic-password -w \
-  -a homelab-agent -s homelab-opnsense-api-secret)
+  -a homelab-api -s homelab-opnsense-api-secret)
 
 curl --fail --silent --show-error \
   --resolve OPNsense.internal:443:10.0.10.1 \
@@ -129,18 +132,24 @@ Then test host search with a GET or empty-grid POST against
 `/api/dnsmasq/settings/search_host`. Never test access by creating a disposable
 record on the production firewall.
 
+The 2026-11-02 validation passed TLS verification, reported firmware 26.7.5,
+returned 12 Dnsmasq host rows, and returned 93 firewall rule rows. No
+configuration mutation was performed.
+
 ## Change protocol
 
-For an explicitly requested API change:
+For an explicitly requested API change only:
 
 1. Query current state and identify the target UUID and sequence.
 2. Confirm the endpoint and JSON shape against the installed UI's network call
    or official generated API reference. Do not guess fields.
-3. Preserve the current values and OPNsense config-history rollback point.
-4. POST the smallest add/set/move operation.
-5. POST the module's documented reconfigure/apply endpoint.
-6. Search/read the object again and test the resulting DNS or traffic path.
-7. Update the source of truth, snapshot only sanitized evidence, and commit.
+3. Show the exact intended change and obtain explicit user authorization.
+4. Preserve the current values and identify the OPNsense config-history
+   rollback point or console recovery route.
+5. POST the smallest add/set/move operation.
+6. POST the module's documented reconfigure/apply endpoint.
+7. Search/read the object again and test the resulting DNS or traffic path.
+8. Update the source of truth, snapshot only sanitized evidence, and commit.
 
 For Dnsmasq host records the relevant endpoints are:
 
@@ -163,4 +172,8 @@ API keys are listed on the user's **ApiKeys** tab. Remove a key immediately if
 its secret may have been exposed. Rotate by creating a new unique key, updating
 Keychain, testing GET access, then deleting the old key. Disable the dedicated
 user or remove its group membership to suspend all associated keys.
+
+If the MacBook no longer has `10.0.10.194`, restore its Dnsmasq reservation or
+update the group's source network from the OPNsense console/Web UI. Do not
+broaden the source network merely to make a failed test pass.
 

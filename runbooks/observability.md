@@ -27,9 +27,10 @@ Do not copy these values into this repository, a snapshot, or a command log.
 Homepage receives its two secrets from `/opt/homepage/.env`, which must remain
 mode `0600`. Uptime Kuma stores only its password hash in its local database.
 
-## OPNsense DNS work still required
+## OPNsense DNS state
 
-Add these rows under **Services -> Dnsmasq DNS & DHCP -> Hosts**:
+These rows are present under **Services -> Dnsmasq DNS & DHCP -> Hosts** and
+were confirmed through the authenticated API on 2026-11-02:
 
 | Host | Domain | IP address | Hardware address | Description |
 |---|---|---|---|---|
@@ -37,17 +38,18 @@ Add these rows under **Services -> Dnsmasq DNS & DHCP -> Hosts**:
 | `uptime-kuma` | `home.rvsteele.com` | `10.0.10.6` | `BC:24:11:9F:A1:9B` | `Uptime Kuma` |
 
 These rows inventory and reserve each backend identity; they do not replace
-the Caddy-facing web records. Add these OPNsense Unbound host overrides:
+the Caddy-facing web records. These OPNsense Unbound host overrides are also
+present and were confirmed through the API on 2026-11-02:
 
 ```text
 homepage.home.rvsteele.com  A  10.0.10.3
 uptime.home.rvsteele.com    A  10.0.10.3
 ```
 
-Save and apply both services. No OPNsense firewall change is required while
-the containers stay on HOME: HOME already has broad outbound access, and
-same-HOME traffic is switched without crossing OPNsense. AdGuard already has
-both Caddy rewrites pointing to `10.0.10.3`.
+No OPNsense firewall change is required while the containers stay on HOME:
+HOME already has broad outbound access, and same-HOME traffic is switched
+without crossing OPNsense. AdGuard also has both Caddy rewrites pointing to
+`10.0.10.3`.
 
 Verify the two resolver paths separately:
 

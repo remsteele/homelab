@@ -1,25 +1,27 @@
 schema_version: 1
 plans:
   - id: opnsense-api-access
-    status: proposed
-    goal: Give the homelab agent narrowly scoped, auditable OPNsense machine access without administrator or privileged SSH credentials.
+    status: confirmed
+    goal: Give the homelab agent auditable OPNsense machine access without administrator or privileged SSH credentials.
     installed_capability:
       version: OPNsense 26.7.5
       authentication: Per-user API key and one-time-download secret over HTTP Basic authentication
       verified_modules: [dnsmasq, unbound, firewall-filter]
-    recommended_phase_one:
-      account: homelab-agent
-      group: homelab-api-dns
-      source_network: Fixed MacBook HOME address /32
-      privileges: ["Services: Dnsmasq DNS/DHCP: Settings"]
+    deployed:
+      account: homelab-api
+      group: homelab-api-access
+      source_network: 10.0.10.194/32
+      source_mac: "56:fa:43:ce:40:23"
+      privileges: ["WebCfg - All pages"]
       shell: /sbin/nologin
       ordinary_password_login: scrambled-disabled
       credential_storage: macOS Keychain outside this repository
+      tls: Pinned OPNsense.internal certificate forced to 10.0.10.1
+      verified_as_of: "2026-11-02"
     limitations:
-      - Dnsmasq and modern firewall ACLs combine read and write endpoints; they are not technically read-only.
-      - Applying Unbound overrides requires the broad Services: Unbound API scope on the installed ACL.
+      - The dedicated key has full WebCfg read/write authority; explicit user authorization remains required before mutations.
       - The modern firewall API must not be assumed to manage legacy rules.
-    expansion_gate: Add Unbound or Firewall Rules [new] privileges only after accepting their wider mutation scope.
+      - Source restriction depends on the MacBook retaining its Dnsmasq reservation at 10.0.10.194.
     runbook: runbooks/opnsense-api.md
 
   - id: adguard-network-rollout
@@ -30,7 +32,6 @@ plans:
       - Caddy serves https://adguard.home.rvsteele.com and proxies to 10.0.10.4:80.
       - Public, local, filtered, reboot-persistence, and HTTPS tests pass.
     remaining:
-      - Add adguard.home.rvsteele.com -> 10.0.10.3 to OPNsense Unbound.
       - Add TCP/UDP 53 passes to 10.0.10.4 above LOCAL_NETS blocks on IOT, GUEST, SERVERS, and DMZ.
       - Set DHCP DNS to 10.0.10.4 one VLAN at a time and renew test clients.
       - Keep qBittorrent on OPNsense DNS until its host-specific rule is deliberately changed and leak-tested.

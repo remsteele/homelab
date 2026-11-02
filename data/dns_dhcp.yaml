@@ -33,10 +33,14 @@ untagged_dhcp_pools:
 
 reservations:
   status: confirmed
-  verified_as_of: "2026-11-01"
-  source: Live generated /usr/local/etc/dnsmasq.conf
+  verified_as_of: "2026-11-02"
+  source: Live generated /usr/local/etc/dnsmasq.conf plus authenticated Dnsmasq API search
   records:
     - {host: caddy, ip: 10.0.10.3, mac: "bc:24:11:a9:2e:07"}
+    - {host: adguard, domain: home.rvsteele.com, ip: 10.0.10.4, mac: "bc:24:11:ad:00:09"}
+    - {host: homepage, domain: home.rvsteele.com, ip: 10.0.10.5, mac: "bc:24:11:a3:fa:7d"}
+    - {host: uptime-kuma, domain: home.rvsteele.com, ip: 10.0.10.6, mac: "bc:24:11:9f:a1:9b"}
+    - {host: remington-macbook, domain: home.rvsteele.com, ip: 10.0.10.194, mac: "56:fa:43:ce:40:23", purpose: Fixed source for OPNsense API access}
     - {host: jellyfin, ip: 10.0.40.10, mac: "bc:24:11:e3:04:90"}
     - {host: qbittorrent, ip: 10.0.40.11, mac: "bc:24:11:97:e7:68"}
     - {host: sonarr, ip: 10.0.40.12, mac: "bc:24:11:ff:94:4c"}
@@ -45,17 +49,10 @@ reservations:
     - {host: dvdstream, ip: 10.0.40.15, mac: "bc:24:11:93:c9:3f"}
     - {host: games, ip: 10.0.50.10, mac: "bc:24:11:90:be:0b"}
 
-planned_reservations:
-  status: planned
-  records:
-    - {host: adguard, domain: home.rvsteele.com, ip: 10.0.10.4, mac: "bc:24:11:ad:00:09", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
-    - {host: homepage, domain: home.rvsteele.com, ip: 10.0.10.5, mac: "bc:24:11:a3:fa:7d", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
-    - {host: uptime-kuma, domain: home.rvsteele.com, ip: 10.0.10.6, mac: "bc:24:11:9f:a1:9b", note: Static LXC address; add to Dnsmasq Hosts for MAC/IP inventory and collision prevention}
-
 internal_records:
   status: confirmed
-  verified_as_of: "2026-11-01"
-  method: Direct A queries to Unbound at 10.0.10.1
+  verified_as_of: "2026-11-02"
+  method: Direct A queries and authenticated Unbound API search
   records:
     - {name: router.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
     - {name: pve.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy}
@@ -65,9 +62,9 @@ internal_records:
     - {name: sonarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
-    - {name: adguard.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: OPNsense Unbound returned no A answer on 2026-11-01; add the override before or with client rollout}
-    - {name: homepage.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: Add an OPNsense Unbound override to 10.0.10.3}
-    - {name: uptime.home.rvsteele.com, type: A, value: absent, purpose: Caddy proxy, status: confirmed, state_note: Add an OPNsense Unbound override to 10.0.10.3}
+    - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
+    - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
+    - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: terraria.home.rvsteele.com, type: A, value: 10.0.50.10, purpose: Direct internal TCP service}
     - {name: dvd.home.rvsteele.com, type: A, value: absent, purpose: Future Caddy proxy, status: planned}
     - {name: ntop.home.rvsteele.com, type: A, value: absent, purpose: Obsolete ntopng UI, status: confirmed, state_note: Cleanup complete in DNS}
