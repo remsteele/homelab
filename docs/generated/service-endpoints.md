@@ -18,6 +18,7 @@ Generated from `data/services.yaml` by `tools/generate_docs.rb`. Do not edit by 
 | sonarr | sonarr | HTTP 10.0.40.12:8989 | https://sonarr.home.rvsteele.com | — | confirmed |
 | radarr | radarr | HTTP 10.0.40.13:7878 | https://radarr.home.rvsteele.com | — | confirmed |
 | prowlarr | prowlarr | HTTP 10.0.40.14:9696 | https://prowlarr.home.rvsteele.com | — | confirmed |
+| seerr | seerr | HTTP 10.0.40.16:5055 | https://seerr.home.rvsteele.com | — | confirmed |
 | flaresolverr | prowlarr | HTTP 127.0.0.1:8191 | — | — | confirmed |
 | terraria | games | TCP 10.0.50.10:7777 | terraria.rvsteele.com:7777 | — | confirmed |
 | dvd-inspection | dvdstream |  | — | unavailable | confirmed |

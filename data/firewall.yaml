@@ -47,16 +47,18 @@ interface_policies:
       - {order: 80, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.12, destination_port: 8989, description: HOME - Caddy to Sonarr}
       - {order: 90, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.13, destination_port: 7878, description: HOME - Caddy to Radarr}
       - {order: 100, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.14, destination_port: 9696, description: HOME - Caddy to Prowlarr}
-      - {order: 110, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.10, destination_port: 8096, description: HOME - Uptime Kuma to Jellyfin}
-      - {order: 120, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.11, destination_port: 8080, description: HOME - Uptime Kuma to qBittorrent}
-      - {order: 130, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.12, destination_port: 8989, description: HOME - Uptime Kuma to Sonarr}
-      - {order: 140, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.13, destination_port: 7878, description: HOME - Uptime Kuma to Radarr}
-      - {order: 150, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.14, destination_port: 9696, description: HOME - Uptime Kuma to Prowlarr}
-      - {order: 160, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.50.10, destination_port: 7777, description: HOME - Uptime Kuma to Terraria}
-      - {order: 170, action: pass, family: IPv4, protocol: TCP, source: HOME net, destination: 10.0.50.10, destination_port: 7777, description: HOME - Clients to Terraria}
-      - {order: 180, action: block, family: IPv4, protocol: any, source: HOME net, destination: LOCAL_NETS, description: HOME - Block initiation to private networks}
-      - {order: 190, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: HOME - Allow Internet}
-      - {order: 200, enabled: false, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: TEMP - HOME allow all, status: confirmed, purpose: Disabled rollback rule retained temporarily}
+      - {order: 110, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.16, destination_port: 5055, description: HOME - Caddy to Seerr}
+      - {order: 120, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.10, destination_port: 8096, description: HOME - Uptime Kuma to Jellyfin}
+      - {order: 130, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.11, destination_port: 8080, description: HOME - Uptime Kuma to qBittorrent}
+      - {order: 140, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.12, destination_port: 8989, description: HOME - Uptime Kuma to Sonarr}
+      - {order: 150, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.13, destination_port: 7878, description: HOME - Uptime Kuma to Radarr}
+      - {order: 160, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.14, destination_port: 9696, description: HOME - Uptime Kuma to Prowlarr}
+      - {order: 170, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.16, destination_port: 5055, description: HOME - Uptime Kuma to Seerr}
+      - {order: 180, action: pass, family: IPv4, protocol: TCP, source: 10.0.10.6, destination: 10.0.50.10, destination_port: 7777, description: HOME - Uptime Kuma to Terraria}
+      - {order: 190, action: pass, family: IPv4, protocol: TCP, source: HOME net, destination: 10.0.50.10, destination_port: 7777, description: HOME - Clients to Terraria}
+      - {order: 200, action: block, family: IPv4, protocol: any, source: HOME net, destination: LOCAL_NETS, description: HOME - Block initiation to private networks}
+      - {order: 210, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: HOME - Allow Internet}
+      - {order: 220, enabled: false, action: pass, family: IPv4, protocol: any, source: HOME net, destination: any, description: TEMP - HOME allow all, status: confirmed, purpose: Disabled rollback rule retained temporarily}
     same_vlan_note: HOME peers remain directly reachable through switching; these rules govern traffic routed from HOME to the firewall and other VLANs.
 
   - interface: IOT
@@ -115,7 +117,7 @@ homepage_and_monitoring:
   hosts: [homepage, uptime-kuma]
   placement: HOME VLAN
   opnsense_rules_required: true
-  current_policy: Uptime Kuma has exact TCP passes to OPNsense 443, SERVERS service ports, and Terraria 7777; same-HOME probes remain switched locally.
+  current_policy: Uptime Kuma has exact TCP passes to OPNsense 443, SERVERS service ports including Seerr 5055, and Terraria 7777; same-HOME probes remain switched locally.
   constraint: Do not move Uptime Kuma to SERVERS or add a broad SERVERS-to-management exception merely for monitoring.
 
 rooted_tv_management:

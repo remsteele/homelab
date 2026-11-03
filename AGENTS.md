@@ -35,6 +35,7 @@ Use only these state labels in `status` fields: `confirmed`, `historical`,
 | SSH access or hardening | `data/security.yaml`, `data/hosts.yaml` | `runbooks/ssh-access.md` |
 | Storage, mounts, permissions, or media paths | `data/storage.yaml`, `data/media_migrations.yaml` | `runbooks/media-disk.md`, `runbooks/media-hardlinks.md` |
 | Jellyfin | `data/services.yaml`, `data/storage.yaml` | `runbooks/jellyfin.md` |
+| Seerr, media requests, or Jellyfin/Sonarr/Radarr request integration | `data/services.yaml`, `data/connections.yaml`, `data/security.yaml` | `runbooks/seerr.md` |
 | qBittorrent or ProtonVPN | `data/services.yaml`, `data/firewall.yaml`, `data/networks.yaml` | `runbooks/qbittorrent-vpn.md` |
 | Terraria or public game access | `data/services.yaml`, `data/firewall.yaml`, `data/dns_dhcp.yaml` | `runbooks/terraria.md` |
 | DVD streaming or optical hardware | `data/hosts.yaml`, `data/services.yaml`, `data/physical.yaml` | `runbooks/dvdstream.md` |

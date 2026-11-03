@@ -48,6 +48,7 @@ reservations:
     - {host: radarr, ip: 10.0.40.13, mac: "bc:24:11:18:4f:26"}
     - {host: prowlarr, ip: 10.0.40.14, mac: "bc:24:11:3b:00:b7"}
     - {host: dvdstream, ip: 10.0.40.15, mac: "bc:24:11:93:c9:3f"}
+    - {host: seerr, domain: home.rvsteele.com, ip: 10.0.40.16, mac: "bc:24:11:46:62:2d"}
     - {host: games, ip: 10.0.50.10, mac: "bc:24:11:90:be:0b"}
 
 internal_records:
@@ -63,6 +64,7 @@ internal_records:
     - {name: sonarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: radarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
     - {name: prowlarr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, state_note: Browser HTTPS confirmed}
+    - {name: seerr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: adguard.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
     - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Caddy proxy, status: confirmed}
@@ -79,6 +81,7 @@ adguard_rewrites:
     - {name: homepage.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
     - {name: uptime.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the UI through Caddy for clients using AdGuard}
     - {name: tv.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the rooted TV UI through Caddy for clients using AdGuard}
+    - {name: seerr.home.rvsteele.com, type: A, value: 10.0.10.3, purpose: Resolve the request portal through Caddy for clients using AdGuard}
 
 client_dns_distribution:
   status: confirmed

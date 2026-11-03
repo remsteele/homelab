@@ -22,6 +22,7 @@ Generated from `data/hosts.yaml` by `tools/generate_docs.rb`. Do not edit by han
 | sonarr | lxc-unprivileged | 105 | running | 10.0.40.12 | servers | bc:24:11:ff:94:4c | confirmed |
 | radarr | lxc-unprivileged | 106 | running | 10.0.40.13 | servers | bc:24:11:18:4f:26 | confirmed |
 | prowlarr | lxc-unprivileged | 107 | running | 10.0.40.14 | servers | bc:24:11:3b:00:b7 | confirmed |
+| seerr | lxc-unprivileged | 112 | running | 10.0.40.16 | servers | bc:24:11:46:62:2d | confirmed |
 | dvdstream | lxc-privileged | 108 | stopped | 10.0.40.15 | servers | bc:24:11:93:c9:3f | confirmed |
 | eap650 | network-appliance |  | — | 10.0.10.111 | home | — | confirmed |
 | lg-c3 | network-client |  | — | 10.0.20.134 | iot | 84:90:0a:95:4b:a2 | confirmed |

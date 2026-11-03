@@ -16,7 +16,7 @@ settings:
   hide_version: false
   layout:
     Infrastructure: {style: row, columns: 6}
-    Media: {style: row, columns: 5}
+    Media: {style: row, columns: 6}
 
 links:
   Infrastructure:
@@ -32,6 +32,7 @@ links:
     - {name: Sonarr, url: https://sonarr.home.rvsteele.com}
     - {name: Radarr, url: https://radarr.home.rvsteele.com}
     - {name: Prowlarr, url: https://prowlarr.home.rvsteele.com}
+    - {name: Seerr, url: https://seerr.home.rvsteele.com}
 
 verification:
   yaml_parse: passed

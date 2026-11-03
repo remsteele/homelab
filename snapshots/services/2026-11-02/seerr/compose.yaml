@@ -1,0 +1,20 @@
+services:
+  seerr:
+    image: ghcr.io/seerr-team/seerr:v3.5.1
+    container_name: seerr
+    init: true
+    restart: unless-stopped
+    environment:
+      LOG_LEVEL: info
+      TZ: America/Los_Angeles
+      PORT: "5055"
+    ports:
+      - "10.0.40.16:5055:5055"
+    volumes:
+      - /opt/seerr/config:/app/config
+    healthcheck:
+      test: [CMD-SHELL, "wget --no-verbose --tries=1 --spider http://localhost:5055/api/v1/status || exit 1"]
+      start_period: 20s
+      timeout: 3s
+      interval: 15s
+      retries: 3

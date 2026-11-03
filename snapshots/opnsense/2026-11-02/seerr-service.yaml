@@ -1,0 +1,32 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: Authenticated native OPNsense API over pinned TLS plus direct resolver tests
+  sanitized: true
+  mutation_performed: true
+
+dnsmasq_host:
+  uuid: b88ac820-febb-4077-a3af-5efb35458689
+  host: seerr
+  domain: home.rvsteele.com
+  ip: 10.0.40.16
+  mac: "BC:24:11:46:62:2D"
+
+unbound_override:
+  uuid: 92b3495c-ff14-49a0-8ed8-a9c4a623c839
+  name: seerr
+  domain: home.rvsteele.com
+  type: A
+  value: 10.0.10.3
+
+home_firewall_rules:
+  - {uuid: 74a3a6ba-7988-46d1-89ed-2d05a3fdb333, sequence: 299, source: 10.0.10.3, destination: 10.0.40.16, protocol: TCP, port: 5055, description: HOME - Caddy to Seerr}
+  - {uuid: 3c20044c-566d-41f4-9da8-c8e9f2bc4bc1, sequence: 388, source: 10.0.10.6, destination: 10.0.40.16, protocol: TCP, port: 5055, description: HOME - Uptime Kuma to Seerr}
+
+verification:
+  unbound_a_result: 10.0.10.3
+  adguard_rewrite_result: 10.0.10.3
+  caddy_backend_path: passed
+  uptime_kuma_backend_path: passed
+  homepage_backend_path: blocked-as-designed
+  https_result: login-redirect

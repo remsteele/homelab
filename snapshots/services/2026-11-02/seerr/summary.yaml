@@ -1,0 +1,39 @@
+schema_version: 1
+snapshot:
+  captured_at: "2026-11-02"
+  source: CT 112 runtime and filtered Seerr API responses
+  sanitized: true
+  secrets_in_snapshot: false
+
+host:
+  vmid: 112
+  address: 10.0.40.16/24
+  gateway: 10.0.40.1
+  vlan: 40
+  bridge: vmbr1
+  mac: "BC:24:11:46:62:2D"
+  unprivileged: true
+  onboot: true
+  resources: {vcpu: 2, memory_mib: 2048, swap_mib: 512, root_disk_gib: 12}
+
+service:
+  version: 3.5.1
+  image: ghcr.io/seerr-team/seerr:v3.5.1
+  backend: http://10.0.40.16:5055
+  public_internal_url: https://seerr.home.rvsteele.com
+  config_path: /opt/seerr/config
+  media_mount_present: false
+
+integrations:
+  jellyfin: {endpoint: "http://10.0.40.10:8096", libraries: [Movies, Shows], status: passed}
+  sonarr: {endpoint: "http://10.0.40.12:8989", external_url: "https://sonarr.home.rvsteele.com", profile: HD-1080p, root: /media/tv, season_folders: true, status: passed}
+  radarr: {endpoint: "http://10.0.40.13:7878", external_url: "https://radarr.home.rvsteele.com", profile: HD-1080p, root: /media/movies, minimum_availability: released, status: passed}
+
+verification:
+  container_health: healthy
+  reboot_recovery: passed
+  persistent_app_data: passed
+  https_login_redirect: passed
+  caddy_path: passed
+  uptime_kuma_path: passed
+  homepage_path: blocked-as-designed

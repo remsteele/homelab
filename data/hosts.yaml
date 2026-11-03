@@ -260,6 +260,31 @@ hosts:
     onboot: true
     mounts: []
 
+  - id: seerr
+    status: confirmed
+    hostname: seerr
+    fqdn: seerr.home.rvsteele.com
+    kind: lxc-unprivileged
+    vmid: 112
+    os: Debian 13
+    role: Jellyfin media request and discovery portal
+    resources: {vcpu: 2, memory_mib: 2048, swap_mib: 512, root_disk_gib: 12, root_storage: local-lvm}
+    lxc_features: {nesting: true, keyctl: true}
+    power_state: running
+    power_state_as_of: "2026-11-02"
+    interfaces:
+      - {name: eth0, bridge: vmbr1, vlan: servers, mac: "bc:24:11:46:62:2d", addressing: static, firewall: true}
+    addresses:
+      - {ip: 10.0.40.16, vlan: servers, prefix: 24, status: confirmed}
+    gateway: 10.0.40.1
+    dns: {nameserver: 10.0.40.1, search_domain: home.rvsteele.com, status: confirmed}
+    onboot: true
+    mounts: []
+    notes:
+      - The static address is configured in the LXC definition and also inventoried in OPNsense Dnsmasq.
+      - Docker is used only for the pinned Seerr container.
+      - The container has no media mount; Seerr reaches Jellyfin, Sonarr, and Radarr only through their APIs.
+
   - id: dvdstream
     status: confirmed
     hostname: dvdstream

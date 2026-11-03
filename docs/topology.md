@@ -49,7 +49,9 @@ WireGuard interface. This ordering is safety-critical.
 
 Services on the same VLAN 40 communicate through the virtual switch, not
 OPNsense inter-VLAN policy. That includes Sonarr/Radarr/Prowlarr calls to
-qBittorrent and one another.
+qBittorrent and one another. Seerr is also on VLAN 40 and reaches Jellyfin,
+Sonarr, and Radarr directly through their application APIs; it has no media
+mount.
 
 ## Name and TLS path
 
@@ -72,6 +74,11 @@ HOME. Caddy serves their browser names, while Uptime Kuma probes backend IPs
 directly across HOME, SERVERS, and DMZ. This placement uses HOME's existing
 trusted access and avoids a broad monitoring exception from a restricted VLAN.
 Neither container mounts the media disk.
+
+Seerr (CT 112, `10.0.40.16`) is the internal request portal. Its browser name
+resolves to Caddy, while exact HOME exceptions allow Caddy and Uptime Kuma to
+reach TCP 5055. Other HOME clients cannot bypass Caddy to the cross-VLAN
+backend. Uptime Kuma monitors Seerr's `/api/v1/status` endpoint.
 
 ## Media data path
 

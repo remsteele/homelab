@@ -25,6 +25,7 @@ into this repository, a VM/container, a snapshot, or a prompt.
 | Sonarr | 10.0.40.12 | `root` | Root key-only; passwords enabled globally |
 | Radarr | 10.0.40.13 | `root` | Root key-only; passwords enabled globally |
 | Prowlarr | 10.0.40.14 | `root` | Root key-only; passwords enabled globally |
+| Seerr | 10.0.40.16 | `root` | Root key-only; passwords enabled globally |
 | DVDStream | 10.0.40.15 | `root` | User-reported key installed; host is off |
 | Games | 10.0.50.10 | `remington` | Key works; password auth is also advertised |
 
@@ -61,6 +62,7 @@ authentication, and `IdentitiesOnly yes`; the file is mode `0600`.
 | `ssh sonarr` | `10.0.40.12` | `root` | `sonarr.home.rvsteele.com` |
 | `ssh radarr` | `10.0.40.13` | `root` | `radarr.home.rvsteele.com` |
 | `ssh prowlarr` | `10.0.40.14` | `root` | `prowlarr.home.rvsteele.com` |
+| `ssh seerr` | `10.0.40.16` | `root` | `seerr.home.rvsteele.com` |
 | `ssh dvdstream` | `10.0.40.15` | `root` | Host intentionally stopped |
 | `ssh games` | `10.0.50.10` | `remington` | `terraria`, `terraria.home.rvsteele.com` |
 

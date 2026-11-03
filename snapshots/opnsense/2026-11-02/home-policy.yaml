@@ -29,11 +29,13 @@ ordered_rules:
   - {sequence: 259, uuid: 659400dd-e880-4f99-abd0-082a547772dd, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.12, port: 8989, description: HOME - Caddy to Sonarr}
   - {sequence: 284, uuid: 89030417-4532-4d32-92d0-1900e687f238, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.13, port: 7878, description: HOME - Caddy to Radarr}
   - {sequence: 296, uuid: bae471c7-67a4-44c0-bd25-d8d4af0b0e50, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.14, port: 9696, description: HOME - Caddy to Prowlarr}
+  - {sequence: 299, uuid: 74a3a6ba-7988-46d1-89ed-2d05a3fdb333, enabled: true, action: pass, protocol: TCP, source: 10.0.10.3, destination: 10.0.40.16, port: 5055, description: HOME - Caddy to Seerr}
   - {sequence: 302, uuid: c8d24bb3-67b4-41f1-974e-f34d91e49918, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.10, port: 8096, description: HOME - Uptime Kuma to Jellyfin}
   - {sequence: 305, uuid: 19a0a438-1795-42f6-a99f-2d74ad611ed6, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.11, port: 8080, description: HOME - Uptime Kuma to qBittorrent}
   - {sequence: 307, uuid: d64dc173-0bdf-4c98-922f-9b92285973bf, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.12, port: 8989, description: HOME - Uptime Kuma to Sonarr}
   - {sequence: 357, uuid: eb39b05c-1c3a-48c9-b358-ccc0a197ac89, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.13, port: 7878, description: HOME - Uptime Kuma to Radarr}
   - {sequence: 382, uuid: e38f0adb-3551-4fc5-abf3-74245638874e, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.14, port: 9696, description: HOME - Uptime Kuma to Prowlarr}
+  - {sequence: 388, uuid: 3c20044c-566d-41f4-9da8-c8e9f2bc4bc1, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.40.16, port: 5055, description: HOME - Uptime Kuma to Seerr}
   - {sequence: 394, uuid: a404d4d8-31dd-4ab5-971d-bec8a88328e1, enabled: true, action: pass, protocol: TCP, source: 10.0.10.6, destination: 10.0.50.10, port: 7777, description: HOME - Uptime Kuma to Terraria}
   - {sequence: 400, uuid: 32ffd834-7bbf-41e9-815b-254fd90ed575, enabled: true, action: pass, protocol: TCP, source: HOME-net, destination: 10.0.50.10, port: 7777, description: HOME - Clients to Terraria}
   - {sequence: 403, uuid: 320b1c1d-ff18-440f-b101-216cb3ce46d9, enabled: true, action: block, protocol: any, source: HOME-net, destination: LOCAL_NETS, description: HOME - Block initiation to private networks}
@@ -48,8 +50,11 @@ verification:
   macbook_to_tv_ssh_22: passed
   caddy_to_all_documented_cross_vlan_backends: passed
   uptime_kuma_to_all_cross_vlan_targets: passed
+  caddy_to_seerr_5055: passed
+  uptime_kuma_to_seerr_5055: passed
   home_to_terraria_7777: passed
   caddy_https_tv: passed
   homepage_to_tv_8080: blocked-as-designed
   homepage_to_jellyfin_8096: blocked-as-designed
+  homepage_to_seerr_5055: blocked-as-designed
   state_table_confirmed_new_rule_labels: true

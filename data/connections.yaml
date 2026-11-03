@@ -59,6 +59,7 @@ connections:
   - {id: caddy-sonarr, status: confirmed, kind: reverse-proxy, from: caddy, to: sonarr, protocol: HTTP, port: 8989}
   - {id: caddy-radarr, status: confirmed, kind: reverse-proxy, from: caddy, to: radarr, protocol: HTTP, port: 7878}
   - {id: caddy-prowlarr, status: confirmed, kind: reverse-proxy, from: caddy, to: prowlarr, protocol: HTTP, port: 9696}
+  - {id: caddy-seerr, status: confirmed, kind: reverse-proxy, from: caddy, to: seerr, protocol: HTTP, port: 5055}
   - {id: caddy-adguard, status: confirmed, kind: reverse-proxy, from: caddy, to: adguard, protocol: HTTP, port: 80}
   - {id: caddy-homepage, status: confirmed, kind: reverse-proxy, from: caddy, to: homepage, protocol: HTTP, port: 3000}
   - {id: caddy-uptime-kuma, status: confirmed, kind: reverse-proxy, from: caddy, to: uptime-kuma, protocol: HTTP-WebSocket, port: 3001}
@@ -76,6 +77,9 @@ connections:
   - {id: prowlarr-sonarr, status: confirmed, kind: application-api, from: prowlarr, to: sonarr, protocol: HTTP, port: 8989, sync: Full Sync}
   - {id: prowlarr-radarr, status: confirmed, kind: application-api, from: prowlarr, to: radarr, protocol: HTTP, port: 7878, sync: Full Sync}
   - {id: prowlarr-flaresolverr, status: confirmed, kind: loopback-api, from: prowlarr, to: flaresolverr, protocol: HTTP, address: 127.0.0.1, port: 8191}
+  - {id: seerr-jellyfin, status: confirmed, kind: application-api, from: seerr, to: jellyfin, protocol: HTTP, port: 8096, purpose: Authentication and library discovery}
+  - {id: seerr-sonarr, status: confirmed, kind: application-api, from: seerr, to: sonarr, protocol: HTTP, port: 8989, purpose: TV requests}
+  - {id: seerr-radarr, status: confirmed, kind: application-api, from: seerr, to: radarr, protocol: HTTP, port: 7878, purpose: Movie requests}
 
   - id: uptime-kuma-monitoring
     status: confirmed
@@ -92,6 +96,7 @@ connections:
       - {to: sonarr, protocol: HTTP, port: 8989}
       - {to: radarr, protocol: HTTP, port: 7878}
       - {to: prowlarr, protocol: HTTP, port: 9696}
+      - {to: seerr, protocol: HTTP, port: 5055, path: /api/v1/status}
       - {to: games, protocol: TCP, port: 7777}
 
   - id: qbittorrent-proton

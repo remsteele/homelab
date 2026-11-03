@@ -82,7 +82,8 @@ After editing configuration, run `docker compose config --quiet`, then
 
 The Infrastructure group includes the rooted LG TV link at
 `https://tv.home.rvsteele.com`. Its six services use a six-column desktop row;
-the TV tile uses the `mdi-television` icon.
+the TV tile uses the `mdi-television` icon. The Media group uses a six-column
+row and includes Seerr at `https://seerr.home.rvsteele.com`.
 
 ## Uptime Kuma operations
 
@@ -90,9 +91,10 @@ The Compose project is `/opt/uptime-kuma`; persistent data is
 `/opt/uptime-kuma/data`. SQLite is intentionally on the local LXC root disk so
 its locking semantics do not depend on a network filesystem.
 
-The initial monitor set checks Homepage, OPNsense, Proxmox, AdGuard Home,
-Jellyfin, qBittorrent, Sonarr, Radarr, Prowlarr, and Terraria every 60 seconds,
-with two retries. No outbound notification provider is configured yet.
+The monitor set checks Homepage, OPNsense, Proxmox, AdGuard Home, Jellyfin,
+qBittorrent, Sonarr, Radarr, Prowlarr, Seerr, and Terraria every 60 seconds,
+with two retries. Seerr uses `/api/v1/status` rather than the login page. No
+outbound notification provider is configured yet.
 
 ```sh
 ssh -i ~/.ssh/homelab_ed25519 root@10.0.10.6
