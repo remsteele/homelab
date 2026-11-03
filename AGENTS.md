@@ -11,9 +11,7 @@ documents.
    and relevant runbook before acting.
 3. Treat `data/*.yaml` as desired/current truth and `snapshots/` as dated
    evidence. A snapshot never silently overrides the data model.
-4. Treat `context.txt` as the original historical import, not as the current
-   source of truth.
-5. Do not edit `docs/generated/*` by hand. Run `make docs` or `make check`.
+4. Do not edit `docs/generated/*` by hand. Run `make docs` or `make check`.
 
 Use only these state labels in `status` fields: `confirmed`, `historical`,
 `planned`, `proposed`, and `needs_verification`. Never promote a claim to

@@ -1,8 +1,8 @@
 # Homelab source of truth
 
-This repository is the declarative record of the homelab described in
-`context.txt`. It records what is known now, what is historical, what is
-planned, and what still needs to be checked without treating guesses as facts.
+This repository is the authoritative declarative record of the homelab. It
+records what is known now, what is historical, what is planned, and what still
+needs to be checked without treating guesses as facts.
 
 ## Trust model
 
@@ -67,8 +67,9 @@ private keys, cookies, session exports, or recovery codes. It is safe to record
 where a secret lives, its purpose, owner, and minimum permission scope. See
 `data/security.yaml` and `snapshots/README.md` before adding exports.
 
-`context.txt` is retained as the original imported narrative. New facts should
-go into the structured files rather than being appended to that source dump.
+New facts belong in the relevant authoritative `data/*.yaml` file, with dated
+sanitized evidence under `snapshots/` and operating guidance under `runbooks/`
+when appropriate.
 
 ## Current high-priority gaps
 

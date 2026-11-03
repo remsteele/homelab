@@ -25,15 +25,13 @@ site:
   notes:
     - The Cox gateway is bridged; OPNsense is the router and firewall.
     - The public IPv4 address is dynamic.
-source:
-  imported_from: context.txt
-  import_date: 2026-11-01
-  policy: No live discovery was performed during the initial import.
 live_discovery:
-  latest_date: "2026-11-01"
-  method: Read-only SSH inventory from the owner's MacBook
+  latest_date: "2026-11-02"
+  method: Read-only SSH inventory plus authenticated OPNsense API verification from the owner's MacBook
   evidence_roots:
     - snapshots/proxmox/2026-11-01
     - snapshots/opnsense/2026-11-01
     - snapshots/services/2026-11-01
+    - snapshots/opnsense/2026-11-02
+    - snapshots/services/2026-11-02
 
